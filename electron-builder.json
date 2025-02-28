@@ -1,0 +1,37 @@
+{
+  "productName": "Moni Helper",
+  "appId": "top.voemp.monihelper",
+  "asar": true,
+  "directories": {
+    "output": "out/${platform}-${version}"
+  },
+  "files": ["dist"],
+  "mac": {
+    "artifactName": "${productName}_${version}_${arch}.${ext}",
+    "target": [
+      "dmg",
+      "zip"
+    ]
+  },
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      }
+    ]
+  },
+  "nsis": {
+    "artifactName": "${productName}_${version}_${arch}.${ext}",
+    "oneClick": false,
+    "perMachine": true,
+    "allowToChangeInstallationDirectory": true,
+    "deleteAppDataOnUninstall": true
+  },
+  "publish": {
+    "provider": "generic",
+    "url": ""
+  }
+}
