@@ -1,4 +1,4 @@
-import {ipcRenderer, contextBridge} from 'electron'
+import { ipcRenderer, contextBridge } from 'electron'
 
 contextBridge.exposeInMainWorld('ipcRenderer', {
   on(...args: Parameters<typeof ipcRenderer.on>) {

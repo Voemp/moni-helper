@@ -3,9 +3,11 @@
   "appId": "top.voemp.monihelper",
   "asar": true,
   "directories": {
-    "output": "out/${platform}-${version}"
+    "output": "release/${platform}-${version}"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "mac": {
     "artifactName": "${productName}_${version}_${arch}.${ext}",
     "target": [

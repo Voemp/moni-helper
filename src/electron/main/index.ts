@@ -1,4 +1,4 @@
-import {app, BrowserWindow, ipcMain} from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import path from "node:path";
 
 const preload = path.join(app.getAppPath(), './dist/electron/preload/index.mjs')
