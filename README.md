@@ -13,7 +13,7 @@
 - [「React」 by Meta](https://github.com/facebook/react)
 - [「Vite」 by Vite](https://github.com/vitejs/vite)
 - [「Electron」 by Electron](https://github.com/electron/electron)
-  [「electron-builder」 by Electron Userland](https://github.com/electron-userland/electron-builder)
+- [「electron-builder」 by Electron Userland](https://github.com/electron-userland/electron-builder)
 - [「vite-plugin-electron」 by Electron⚡️Vite](https://github.com/electron-vite/vite-plugin-electron)
 - [「vite-plugin-electron-renderer」 by Electron⚡️Vite](https://github.com/electron-vite/vite-plugin-electron-renderer)
 - [「vite-plugin-static-copy」 by 翠 / green](https://github.com/sapphi-red/vite-plugin-static-copy)
