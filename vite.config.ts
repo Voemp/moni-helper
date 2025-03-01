@@ -1,6 +1,8 @@
-import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
 import electron from 'vite-plugin-electron/simple'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
+import pkg from './package.json'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -13,6 +15,9 @@ export default defineConfig({
         vite: {
           build: {
             outDir: 'dist/electron/main',
+            rollupOptions: {
+              external: Object.keys('dependencies' in pkg ? pkg.dependencies : {}),
+            },
           }
         }
       },
@@ -22,12 +27,23 @@ export default defineConfig({
         vite: {
           build: {
             outDir: 'dist/electron/preload',
+            rollupOptions: {
+              external: Object.keys('dependencies' in pkg ? pkg.dependencies : {}),
+            },
           }
         }
       },
       // Optional: Use Node.js API in the Renderer process
-      renderer: {},
+      renderer: {}
     }),
+    viteStaticCopy({
+      targets: [
+        {
+          src: 'src/electron/assets/*',
+          dest: '../electron/assets/',
+        }
+      ]
+    })
   ],
   build: {
     outDir: 'dist/react',

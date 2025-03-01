@@ -8,9 +8,8 @@ pnpm-debug.log*
 lerna-debug.log*
 
 dist
-out
-release
 node_modules
+release
 *.local
 
 # Editor directories and files

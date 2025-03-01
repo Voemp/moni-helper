@@ -1,24 +1,30 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
-import path from "node:path";
+import { app, BrowserWindow, ipcMain, nativeImage } from 'electron'
+import path from 'node:path'
 
-const preload = path.join(app.getAppPath(), './dist/electron/preload/index.mjs')
-const indexHtml = path.join(app.getAppPath(), './dist/react/index.html')
+const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL
+
+const preloadPath = path.join(app.getAppPath(), './dist/electron/preload/index.mjs')
+const indexHtmlPath = VITE_DEV_SERVER_URL
+  ? VITE_DEV_SERVER_URL
+  : path.join(app.getAppPath(), './dist/react/index.html')
+const iconPath = VITE_DEV_SERVER_URL
+  ? path.resolve('./src/electron/assets/app_icon.png')
+  : path.join(app.getAppPath(), './dist/electron/assets/app_icon.png')
+const appIcon = nativeImage.createFromPath(iconPath)
+
 
 const createWindow = () => {
   const win = new BrowserWindow({
     title: 'Moni Helper',
-    autoHideMenuBar: true,
+    icon: appIcon,
+    frame: true,
     webPreferences: {
-      preload: preload,
+      preload: preloadPath,
     },
     show: false,
   })
 
-  if (process.env.VITE_DEV_SERVER_URL) {
-    win.loadURL(process.env.VITE_DEV_SERVER_URL)
-  } else {
-    win.loadFile(indexHtml);
-  }
+  win.loadURL(indexHtmlPath);
 
   win.once('ready-to-show', () => {
     win.show()
