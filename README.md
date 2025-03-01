@@ -1,54 +1,19 @@
-# React + TypeScript + Vite
+<p align="center">
+  <img width="175" src="./src/electron/assets/app_icon.png" alt="icon">
+</p>
+<div align="center">
+  <h1>Moni Helper</h1>
+</div>
+<p align="center">An app developed for MoniEMG to monitor sensor data.</p>
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 引用
 
-Currently, two official plugins are available:
+> Moni Helper 使用了以下开源项目的部分或全部内容
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+- [「React」 by Meta](https://github.com/facebook/react)
+- [「Vite」 by Vite](https://github.com/vitejs/vite)
+- [「Electron」 by Electron](https://github.com/electron/electron)
+  [「electron-builder」 by Electron Userland](https://github.com/electron-userland/electron-builder)
+- [「vite-plugin-electron」 by Electron⚡️Vite](https://github.com/electron-vite/vite-plugin-electron)
+- [「vite-plugin-electron-renderer」 by Electron⚡️Vite](https://github.com/electron-vite/vite-plugin-electron-renderer)
+- [「vite-plugin-static-copy」 by 翠 / green](https://github.com/sapphi-red/vite-plugin-static-copy)
