@@ -1,40 +1,43 @@
-import { app, BrowserWindow, ipcMain, nativeImage } from 'electron'
+import { app, BrowserWindow, nativeImage } from 'electron'
 import path from 'node:path'
 
-const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL
+const isDev = process.env.NODE_ENV === 'development'
 
 const preloadPath = path.join(app.getAppPath(), './dist/electron/preload/index.mjs')
-const indexHtmlPath = VITE_DEV_SERVER_URL
-  ? VITE_DEV_SERVER_URL
+const indexHtmlPath = isDev
+  ? process.env.VITE_DEV_SERVER_URL as string
   : path.join(app.getAppPath(), './dist/react/index.html')
-const iconPath = VITE_DEV_SERVER_URL
+const iconPath = isDev
   ? path.resolve('./src/electron/assets/app_icon.png')
   : path.join(app.getAppPath(), './dist/electron/assets/app_icon.png')
 const appIcon = nativeImage.createFromPath(iconPath)
 
 
 const createWindow = () => {
-  const win = new BrowserWindow({
+  const mainWindow = new BrowserWindow({
     title: 'Moni Helper',
     icon: appIcon,
+    width: 900,
+    height: 670,
+    minWidth: 900,
+    minHeight: 670,
     frame: true,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: preloadPath,
     },
     show: false,
   })
 
-  win.loadURL(indexHtmlPath);
+  mainWindow.loadURL(indexHtmlPath);
 
-  win.once('ready-to-show', () => {
-    win.show()
+  mainWindow.once('ready-to-show', () => {
+    mainWindow?.show()
   })
 }
 
 app.whenReady().then(() => {
   createWindow()
-
-  ipcMain.on('ping', () => console.log('pong'))
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
