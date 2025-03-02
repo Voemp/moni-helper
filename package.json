@@ -5,7 +5,7 @@
   "main": "dist/electron/main/index.js",
   "license": "MIT",
   "author": "Voemp",
-  "description": "test",
+  "description": "An app developed for MoniEMG to monitor sensor data.",
   "type": "module",
   "scripts": {
     "dev": "chcp 65001 && vite",
