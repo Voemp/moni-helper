@@ -3,7 +3,7 @@ appId: top.voemp.monihelper
 icon: dist/electron/assets/app_icon.png
 asar: true
 directories:
-  output: release/v${version}
+  output: build/v${version}
 files:
   - dist
 win:
@@ -12,7 +12,7 @@ win:
       arch:
         - x64
 nsis:
-  artifactName: ${productName}_${version}_${arch}.${ext}
+  artifactName: ${productName}_${version}_${os}_${arch}.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   oneClick: false
@@ -22,12 +22,11 @@ nsis:
 mac:
   target:
     - dmg
-    - zip
   extendInfo:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
 dmg:
-  artifactName: ${productName}_${version}_${arch}.${ext}
+  artifactName: ${productName}_${version}_${os}_${arch}.${ext}
 linux:
   target:
     - AppImage
@@ -36,7 +35,7 @@ linux:
   maintainer: voemp.top
   category: Utility
 appImage:
-  artifactName: ${productName}_${version}_${arch}.${ext}
+  artifactName: ${productName}_${version}_${os}_${arch}.${ext}
 publish:
   provider: generic
   url:
