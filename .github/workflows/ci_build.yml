@@ -31,8 +31,15 @@ jobs:
           node-version: 22
           cache: 'npm'
 
+      - name: 📦 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
       - name: 📂 Install Dependencies
-        run: npm ci
+        run: |
+          npm ci
+          python -m pip install --upgrade setuptools
 
       - name: 🔧 Build Electron App
         run: npm run build
