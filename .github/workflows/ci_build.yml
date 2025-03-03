@@ -49,9 +49,9 @@ jobs:
         with:
           name: ci-build-${{ matrix.os }}
           path: |
-            build/*/*.exe
-            build/*/*.dmg
-            build/*/*.zip
-            build/*/*.AppImage
-            build/*/*.snap
-            build/*/*.deb
+            build/*.exe
+            build/*.dmg
+            build/*.zip
+            build/*.AppImage
+            build/*.snap
+            build/*.deb
