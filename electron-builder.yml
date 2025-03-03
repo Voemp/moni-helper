@@ -1,0 +1,42 @@
+productName: Moni Helper
+appId: top.voemp.monihelper
+icon: dist/electron/assets/app_icon.png
+asar: true
+directories:
+  output: release/v${version}
+files:
+  - dist
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+nsis:
+  artifactName: ${productName}_${version}_${arch}.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  oneClick: false
+  perMachine: true
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: true
+mac:
+  target:
+    - dmg
+    - zip
+  extendInfo:
+    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
+    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+dmg:
+  artifactName: ${productName}_${version}_${arch}.${ext}
+linux:
+  target:
+    - AppImage
+    - snap
+    - deb
+  maintainer: voemp.top
+  category: Utility
+appImage:
+  artifactName: ${productName}_${version}_${arch}.${ext}
+publish:
+  provider: generic
+  url:
