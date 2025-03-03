@@ -39,7 +39,6 @@ jobs:
       - name: 📂 Install Dependencies
         run: |
           npm ci
-          python -m pip install --upgrade setuptools
 
       - name: 🔧 Build Electron App
         run: npm run build
@@ -49,9 +48,9 @@ jobs:
         with:
           name: ci-build-${{ matrix.os }}
           path: |
-            build/*.exe
-            build/*.dmg
-            build/*.zip
-            build/*.AppImage
-            build/*.snap
-            build/*.deb
+            build/*/*.exe
+            build/*/*.dmg
+            build/*/*.zip
+            build/*/*.AppImage
+            build/*/*.snap
+            build/*/*.deb

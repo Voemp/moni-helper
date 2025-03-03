@@ -1,4 +1,4 @@
-productName: Moni Helper
+productName: MoniHelper
 appId: top.voemp.monihelper
 icon: dist/electron/assets/app_icon.png
 asar: true

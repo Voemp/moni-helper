@@ -15,7 +15,7 @@ const appIcon = nativeImage.createFromPath(iconPath)
 
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
-    title: 'Moni Helper',
+    title: 'MoniHelper',
     icon: appIcon,
     width: 900,
     height: 670,
