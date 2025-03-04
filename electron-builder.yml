@@ -1,12 +1,12 @@
 productName: MoniHelper
 appId: top.voemp.monihelper
-icon: dist/electron/assets/app_icon.png
 asar: true
 directories:
   output: build
 files:
   - dist
 win:
+  icon: dist/electron/assets/app_icon.png
   target:
     - target: nsis
       arch:
@@ -20,6 +20,7 @@ nsis:
   allowToChangeInstallationDirectory: true
   deleteAppDataOnUninstall: true
 mac:
+  icon: dist/electron/assets/app_icon_macos.png
   target:
     - dmg
   extendInfo:
@@ -28,6 +29,7 @@ mac:
 dmg:
   artifactName: ${productName}_${version}_${os}_${arch}.${ext}
 linux:
+  icon: dist/electron/assets/app_icon.png
   target:
     - AppImage
     - snap
