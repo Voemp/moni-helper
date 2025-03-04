@@ -1,19 +1,19 @@
-import { DisconnectOutlined, LinkOutlined } from '@ant-design/icons'
-import { Badge, Button, Card, Col, ConfigProvider, Flex, Row, Statistic } from 'antd'
+import { DisconnectOutlined, ExclamationCircleFilled, LinkOutlined } from '@ant-design/icons'
+import { Badge, Button, Card, Col, ConfigProvider, Flex, Modal, Row, Statistic } from 'antd'
 import { useEffect, useState } from 'react'
 
 interface DeviceInfoProps {
   deviceName?: string
-  deviceStatus?: boolean
   devicePort?: string
+  deviceStatus?: boolean
   connectDevice: () => void
   disconnectDevice: () => void
 }
 
 function DeviceInfoCard({
                           deviceName = '设备信息',
-                          deviceStatus = false,
                           devicePort = '未知',
+                          deviceStatus = false,
                           connectDevice,
                           disconnectDevice
                         }: DeviceInfoProps) {
@@ -24,6 +24,22 @@ function DeviceInfoCard({
     const timeInterval = setInterval(() => setTime(new Date()), 1000)
     return () => clearInterval(timeInterval)
   }, [])
+
+  // 断开连接确认框
+  const {confirm} = Modal;
+
+  const showDisconnectConfirm = () => {
+    confirm({
+      title: '确认要断开连接吗？',
+      icon: <ExclamationCircleFilled />,
+      content: '请确保数据已经保存完毕，以防丢失数据。',
+      okText: '确认',
+      cancelText: '取消',
+      onOk() {
+        disconnectDevice()
+      }
+    })
+  }
 
   return (
     <ConfigProvider theme={{
@@ -36,12 +52,11 @@ function DeviceInfoCard({
       <Card title={deviceName}
             extra={!deviceStatus ?
               <Button onClick={connectDevice} icon={<LinkOutlined />}>连接设备</Button> :
-              <Button onClick={disconnectDevice} icon={<DisconnectOutlined />} danger>断开设备</Button>
-            }
-      >
+              <Button onClick={showDisconnectConfirm} icon={<DisconnectOutlined />} danger>断开设备</Button>
+            }>
         <Row gutter={4}>
           <Col span={6}>
-            <Statistic title="连接状态" valueRender={() => (
+            <Statistic title='连接状态' valueRender={() => (
               <Flex justify={'flex-start'} align="center">
                 {deviceStatus ? '已连接' : '未连接'}
                 <Badge

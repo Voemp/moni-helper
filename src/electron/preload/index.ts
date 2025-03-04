@@ -1,6 +1,10 @@
-import { ipcRenderer, contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 
 contextBridge.exposeInMainWorld('ipcRenderer', {
+  once(...args: Parameters<typeof ipcRenderer.once>) {
+    const [channel, listener] = args
+    return ipcRenderer.once(channel, (event, ...args) => listener(event, ...args))
+  },
   on(...args: Parameters<typeof ipcRenderer.on>) {
     const [channel, listener] = args
     return ipcRenderer.on(channel, (event, ...args) => listener(event, ...args))

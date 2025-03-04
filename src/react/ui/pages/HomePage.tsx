@@ -4,35 +4,44 @@ import { DeviceData } from '../../../types/DeviceData'
 import { DeviceInfo } from '../../../types/DeviceInfo'
 import ActionCard from '../components/ActionCard.tsx'
 import DataAreaCard from '../components/DataAreaCard.tsx'
+import DeviceConnectErrorAlert from '../components/DeviceConnectErrorAlert.tsx'
 import DeviceInfoCard from '../components/DeviceInfoCard.tsx'
 
 function HomePage() {
+  const myDeviceName = 'FX2348N'
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | undefined>(undefined)
   const [deviceData, setDeviceData] = useState<DeviceData | undefined>(undefined)
-  const [shouldMonitor, setShouldMonitor] = useState(false)
+  const [isMonitoring, setIsMonitoring] = useState(false)
+  const [showConnectErrorAlert, setShowConnectErrorAlert] = useState(false)
 
   // 获取设备数据
   useEffect(() => {
-    if (!shouldMonitor || !deviceInfo?.status) return
+    if (!isMonitoring || !deviceInfo?.status) return
     const dataInterval = setInterval(() => {
       handleGetDeviceData()
     }, 1000)
     return () => clearInterval(dataInterval)
-  }, [shouldMonitor, deviceInfo?.status]);
+  }, [isMonitoring, deviceInfo?.status]);
 
 
   return (
     <>
       <Flex vertical style={{margin: 8}}>
+        <DeviceConnectErrorAlert visible={showConnectErrorAlert} onClose={() => setShowConnectErrorAlert(false)} />
         <Row gutter={8}>
           <Col span={18}>
-            <DeviceInfoCard deviceName={deviceInfo?.name} deviceStatus={deviceInfo?.status}
+            <DeviceInfoCard deviceName={deviceInfo?.name}
                             devicePort={deviceInfo?.port}
+                            deviceStatus={deviceInfo?.status}
                             connectDevice={handleConnectDevice}
                             disconnectDevice={handleDisconnectDevice} />
           </Col>
           <Col span={6}>
-            <ActionCard startMonitoring={handleStartMonitoring} stopMonitoring={handleStopMonitoring}
+            <ActionCard deviceStatus={deviceInfo?.status}
+                        isMonitoring={isMonitoring}
+                        hasGotData={deviceData !== undefined}
+                        startMonitoring={handleStartMonitoring}
+                        stopMonitoring={handleStopMonitoring}
                         saveData={handleSaveData} />
           </Col>
         </Row>
@@ -57,40 +66,32 @@ function HomePage() {
     </>
   )
 
-  function handleConnectDevice() {
-    window.ipcRenderer.invoke('connect-device').then(r => {
+  async function handleConnectDevice() {
+    await window.ipcRenderer.invoke('connect-device', myDeviceName).then(r => {
       if (r.status) {
         setDeviceInfo({
           name: r.name,
-          status: r.status,
-          port: r.port
+          port: r.port,
+          status: r.status
         })
+      } else {
+        setShowConnectErrorAlert(true)
       }
     })
   }
 
   function handleDisconnectDevice() {
-    window.ipcRenderer.invoke('disconnect-device').then(r => {
-      if (r) {
-        cleanDeviceInfo()
-      }
-    })
-  }
-
-  function cleanDeviceInfo() {
-    setDeviceInfo({
-      name: '',
-      status: false,
-      port: ''
-    })
+    window.ipcRenderer.send('disconnect-device')
+    setDeviceInfo(undefined)
   }
 
   function handleStartMonitoring() {
-    setShouldMonitor(true)
+    setIsMonitoring(true)
   }
 
   function handleStopMonitoring() {
-    setShouldMonitor(false)
+    setIsMonitoring(false)
+    setDeviceData(undefined)
   }
 
   function handleSaveData() {
@@ -101,8 +102,8 @@ function HomePage() {
     })
   }
 
-  function handleGetDeviceData() {
-    window.ipcRenderer.invoke('get-device-data').then(r => {
+  async function handleGetDeviceData() {
+    await window.ipcRenderer.invoke('get-device-data').then(r => {
       if (r) {
         setDeviceData({
           data1: r.data1,

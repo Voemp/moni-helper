@@ -6,7 +6,7 @@ directories:
 files:
   - dist
 win:
-  icon: dist/electron/assets/app_icon.png
+  icon: dist/electron/assets/app_icon_win.ico
   target:
     - target: nsis
       arch:
