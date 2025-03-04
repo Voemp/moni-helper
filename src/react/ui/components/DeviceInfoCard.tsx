@@ -1,5 +1,5 @@
 import { DisconnectOutlined, ExclamationCircleFilled, LinkOutlined } from '@ant-design/icons'
-import { Badge, Button, Card, Col, ConfigProvider, Flex, Modal, Row, Statistic } from 'antd'
+import { Badge, Button, Card, Col, ConfigProvider, Flex, Modal, Row, Statistic, Tooltip } from 'antd'
 import { useEffect, useState } from 'react'
 
 interface DeviceInfoProps {
@@ -12,7 +12,7 @@ interface DeviceInfoProps {
 
 function DeviceInfoCard({
                           deviceName = '设备信息',
-                          devicePort = '未知',
+                          devicePort = '/dev/tty.usbmodemFX2348N1',
                           deviceStatus = false,
                           connectDevice,
                           disconnectDevice
@@ -24,6 +24,10 @@ function DeviceInfoCard({
     const timeInterval = setInterval(() => setTime(new Date()), 1000)
     return () => clearInterval(timeInterval)
   }, [])
+
+  // 截取字符串
+  const truncate = (str: string, maxLength = 10) =>
+    str.length > maxLength ? str.substring(0, maxLength / 2) + "..." + str.substring(str.length - maxLength / 2) : str
 
   // 断开连接确认框
   const {confirm} = Modal;
@@ -55,7 +59,7 @@ function DeviceInfoCard({
               <Button onClick={showDisconnectConfirm} icon={<DisconnectOutlined />} danger>断开设备</Button>
             }>
         <Row gutter={4}>
-          <Col span={6}>
+          <Col span={7}>
             <Statistic title='连接状态' valueRender={() => (
               <Flex justify={'flex-start'} align="center">
                 {deviceStatus ? '已连接' : '未连接'}
@@ -66,10 +70,16 @@ function DeviceInfoCard({
               </Flex>
             )} />
           </Col>
-          <Col span={6}>
-            <Statistic title='串口号' value={devicePort} />
+          <Col span={7}>
+            <Statistic title='串口号' valueRender={() => (
+              devicePort?.length > 10 ?
+                <Tooltip title={devicePort}>
+                  <span>{truncate(devicePort)}</span>
+                </Tooltip> :
+                <span>{devicePort}</span>
+            )} />
           </Col>
-          <Col span={6}>
+          <Col span={7}>
             <Statistic title='系统时间'
                        value={new Intl.DateTimeFormat(undefined, {timeStyle: 'medium'}).format(time)} />
           </Col>
