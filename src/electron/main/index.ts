@@ -3,13 +3,11 @@ import path from 'node:path'
 
 const isDev = process.env.NODE_ENV === 'development'
 
-const preloadPath = path.join(app.getAppPath(), './dist/electron/preload/index.mjs')
-const indexHtmlPath = isDev
-  ? process.env.VITE_DEV_SERVER_URL as string
-  : path.join(app.getAppPath(), './dist/react/index.html')
+const preloadPath = path.join(app.getAppPath(), 'dist/electron/preload/index.mjs')
+const indexHtmlPath = path.join(app.getAppPath(), 'dist/react')
 const iconPath = isDev
-  ? path.resolve('./src/electron/assets/app_icon.png')
-  : path.join(app.getAppPath(), './dist/electron/assets/app_icon.png')
+  ? path.resolve('src/electron/assets/app_icon.png')
+  : path.join(app.getAppPath(), 'dist/electron/assets/app_icon.png')
 const appIcon = nativeImage.createFromPath(iconPath)
 
 
@@ -18,18 +16,17 @@ const createWindow = () => {
     title: 'MoniHelper',
     icon: appIcon,
     width: 900,
-    height: 670,
+    height: 700,
     minWidth: 900,
-    minHeight: 670,
-    frame: true,
-    autoHideMenuBar: true,
+    minHeight: 700,
+    show: false,
     webPreferences: {
       preload: preloadPath,
     },
-    show: false,
   })
 
-  mainWindow.loadURL(indexHtmlPath);
+  if (isDev) mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL!)
+  else mainWindow.loadFile(path.join(indexHtmlPath, 'index.html'))
 
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show()
