@@ -11,6 +11,8 @@ build
 dist
 node_modules
 *.local
+test/*
+saveData.csv
 
 # Editor directories and files
 .vscode/*

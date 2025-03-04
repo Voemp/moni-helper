@@ -1,10 +1,10 @@
 {
   "name": "moni-helper",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "main": "dist/electron/main/index.js",
   "license": "MIT",
-  "author": "Voemp",
+  "author": "Voemp && Yuyuko9961",
   "description": "An app developed for MoniEMG to monitor sensor data.",
   "type": "module",
   "scripts": {
