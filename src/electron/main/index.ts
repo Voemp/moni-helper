@@ -1,9 +1,8 @@
-import { app, BrowserWindow, nativeImage } from 'electron'
-import { app, BrowserWindow, ipcMain, nativeImage } from 'electron'
-import { SerialPort } from 'serialport'
 import { DelimiterParser } from '@serialport/parser-delimiter'
+import { app, BrowserWindow, ipcMain, nativeImage } from 'electron'
 import * as fs from 'node:fs'
 import path from 'node:path'
+import { SerialPort } from 'serialport'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -114,10 +113,10 @@ let isReading = false
 let portsInfo: PortsInfo[]
 let timerId: NodeJS.Timeout
 let sp: SerialPort | null
-let win: BrowserWindow
+let mainWindow: BrowserWindow
 
 const createWindow = () => {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     title: 'MoniHelper',
     icon: appIcon,
     width: 900,
@@ -141,7 +140,7 @@ const createWindow = () => {
 
   if (isDev) mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL!)
   else mainWindow.loadFile(path.join(indexHtmlPath, 'index.html'))
-  win.loadURL(indexHtmlPath);
+
   ipcMain.on('openPort', (_, deviceName) => startRead(deviceName))
   ipcMain.on('closePort', stopRead)
   ipcMain.on('saveFile', saveToCSV)
@@ -184,14 +183,13 @@ async function getPortsInfo() {
     return portsInfo
   } catch (error) {
     console.log(error)
-    win.webContents.send('responseMessage', ResponseCode.PortScanFailed)
+    mainWindow.webContents.send('responseMessage', ResponseCode.PortScanFailed)
   }
 }
 
 // 从缓存中读取数据
 async function getData() {
-  const dataToRenderer: DeviceData = await portData.getPromiseData()
-  return dataToRenderer
+  return await portData.getPromiseData()
 }
 
 // 开启串口读取数据
@@ -202,29 +200,29 @@ function startRead(deviceName: string) {
   }
   const portPath = getPath(deviceName)
   if (portPath.length == 0) {
-    win.webContents.send('responseMessage', ResponseCode.PortScanFailed)
+    mainWindow.webContents.send('responseMessage', ResponseCode.PortScanFailed)
     return
   }
 
   sp = new SerialPort({ path: portPath, baudRate: 115200, autoOpen: false })
   sp.open((err) => {
     if (err) {
-      win.webContents.send('responseMessage', ResponseCode.PortOpenFailed)
+      mainWindow.webContents.send('responseMessage', ResponseCode.PortOpenFailed)
       return
     }
 
     // 设备连接情况的心跳检测
-    connectDectect(portPath)
+    connectDetect(portPath)
 
     isReading = true;
     const parser = sp?.pipe(new DelimiterParser({ delimiter: '\n' }))
     parser?.on('data', chunk => {
       const callback = portData.add(convertStringToArray(chunk.toString()))
       if (callback == 1) {
-        win.webContents.send('responseMessage', ResponseCode.CacheAlmostFulled)
+        mainWindow.webContents.send('responseMessage', ResponseCode.CacheAlmostFulled)
         console.log("要满了!!!!!!!!!!!!")
       } else if (callback == 2) {
-        win.webContents.send('responseMessage', ResponseCode.CacheAlreadyFulled)
+        mainWindow.webContents.send('responseMessage', ResponseCode.CacheAlreadyFulled)
         console.log("满了!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         stopRead()
         saveToCSV()
@@ -241,7 +239,7 @@ function stopRead() {
     sp.removeAllListeners()
     sp.close((err) => {
       if (err) {
-        win.webContents.send('responseMessage', ResponseCode.PortCloseFailed)
+        mainWindow.webContents.send('responseMessage', ResponseCode.PortCloseFailed)
       }
     });
 
@@ -264,7 +262,7 @@ function getPath(deviceName: string) {
 }
 
 async function saveToCSV(): Promise<void> {
-  win.webContents.send('responseMessage', ResponseCode.SaveConfirmation)
+  mainWindow.webContents.send('responseMessage', ResponseCode.SaveConfirmation)
   console.log(portData.getLength())
   const ifsave = await confirmSave()
   console.log(portData.getLength())
@@ -315,11 +313,11 @@ async function saveToCSV(): Promise<void> {
 // 保存之后的处理
 function afterSave(sign: boolean) {
   if (sign) {
-    win.webContents.send('responseMessage', ResponseCode.SaveFileFinished)
+    mainWindow.webContents.send('responseMessage', ResponseCode.SaveFileFinished)
     // 清除数据缓存
     portData.init()
   } else {
-    win.webContents.send('responseMessage', ResponseCode.SaveFileFailed)
+    mainWindow.webContents.send('responseMessage', ResponseCode.SaveFileFailed)
   }
 }
 
@@ -330,15 +328,15 @@ function confirmSave(): Promise<boolean> {
   })
 }
 
-function connectDectect(portPath: string) {
+function connectDetect(portPath: string) {
   timerId = setInterval(async () => {
     const psInfo = await SerialPort.list()
     const sign = psInfo.some(pInfo => pInfo.path === portPath)
     if (!sign) {
-      win.webContents.send('responseMessage', ResponseCode.DeviceDisconnected)
+      mainWindow.webContents.send('responseMessage', ResponseCode.DeviceDisconnected)
       console.log('???????????????')
       stopRead()
-      saveToCSV()
+      await saveToCSV()
     } else {
       console.log('嘻嘻')
     }
