@@ -4,3 +4,21 @@ html, body {
   margin: 0;
   overflow: hidden; /* 禁止滚动条 */
 }
+
+.titleBar {
+  app-region: drag;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.titleBar img {
+  width: 16px;
+  height: 16px;
+  margin: 8px;
+}
+
+.titleBar h5 {
+  margin-top: 24px;
+}

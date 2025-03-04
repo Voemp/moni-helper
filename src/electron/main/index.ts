@@ -23,6 +23,15 @@ const createWindow = () => {
     webPreferences: {
       preload: preloadPath,
     },
+    // remove the default titleBar
+    titleBarStyle: 'hidden',
+    // expose window controls in Windows/Linux
+    ...(process.platform !== 'darwin' ? {
+      titleBarOverlay: {
+        color: '#FFFFFF',
+        height: 20
+      }
+    } : {}),
   })
 
   if (isDev) mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL!)
