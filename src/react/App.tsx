@@ -11,8 +11,7 @@ function App() {
         token: {
           "borderRadius": 12,
         }
-      }}
-    >
+      }}>
       <HomePage></HomePage>
     </ConfigProvider>
   )

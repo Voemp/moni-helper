@@ -1,9 +1,10 @@
 import { DelimiterParser } from '@serialport/parser-delimiter'
 import { app, BrowserWindow, ipcMain, nativeImage } from 'electron'
-import { SerialPort } from 'serialport'
-import { DeviceInfo } from '../../types/DeviceInfo'
 import * as fs from 'node:fs'
 import path from 'node:path'
+import { SerialPort } from 'serialport'
+import { DeviceInfo } from '../../types/DeviceInfo'
+import { ResponseCode } from '../../types/ResponseCode'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -30,20 +31,6 @@ export interface DeviceData {
   data2: number[]
   data3: number[]
   data4: number[]
-}
-
-export enum ResponseCode {
-  PortOpened,
-  PortClosed,
-  PortScanFailed,
-  PortOpenFailed,
-  PortCloseFailed,
-  SaveFileFailed,
-  SaveFileFinished,
-  SaveConfirmation,
-  CacheAlmostFulled,
-  CacheAlreadyFulled,
-  DeviceDisconnected
 }
 
 export class PortData {
@@ -143,9 +130,9 @@ const createWindow = () => {
   else mainWindow.loadFile(path.join(indexHtmlPath, 'index.html'))
 
   ipcMain.handle('readData', getData)
-  ipcMain.handle('portScan', (_, deviceName) => getDeviceInfo(deviceName))
+  ipcMain.handle('connect-device', (_, deviceName) => getDeviceInfo(deviceName))
   ipcMain.on('openPort', startRead)
-  ipcMain.on('closePort', stopRead)
+  ipcMain.on('disconnect-device', stopRead)
   ipcMain.on('saveFile', saveToCSV)
 
   mainWindow.once('ready-to-show', () => {
@@ -172,13 +159,13 @@ async function getDeviceInfo(deviceName: string) {
     const portPath = getPath(deviceName, portsInfo)
     dInfo = { name: '', port: '', status: false }
     if (portPath.length == 0) {
-      console.log('name: ', dInfo.name, 'port: ', dInfo.port)
+      console.log('找不到设备')
       return dInfo
     } else {
       dInfo.name = deviceName
       dInfo.port = portPath
       dInfo.status = true
-      console.log('name: ', dInfo.name, 'port: ', dInfo.port)
+      console.log('name:', dInfo.name, 'port:', dInfo.port)
       return dInfo
     }
   } catch (error) {
