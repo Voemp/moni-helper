@@ -44,6 +44,18 @@
   margin: 1em;
 }
 
+.button-enabled {
+  background-color: #4CAF50;
+  color: white;
+  cursor: pointer;
+}
+
+.button-disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+}
+
 .read-the-docs {
   color: #888;
 }

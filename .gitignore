@@ -12,6 +12,7 @@ node_modules
 release
 *.local
 test/*
+saveData.csv
 
 # Editor directories and files
 .vscode/*
