@@ -1,8 +1,9 @@
 import { DelimiterParser } from '@serialport/parser-delimiter'
 import { app, BrowserWindow, ipcMain, nativeImage } from 'electron'
+import { SerialPort } from 'serialport'
+import { DeviceInfo } from '../../types/DeviceInfo'
 import * as fs from 'node:fs'
 import path from 'node:path'
-import { SerialPort } from 'serialport'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -110,7 +111,7 @@ export class PortData {
 
 const portData = new PortData
 let isReading = false
-let portsInfo: PortsInfo[]
+let dInfo: DeviceInfo
 let timerId: NodeJS.Timeout
 let sp: SerialPort | null
 let mainWindow: BrowserWindow
@@ -141,11 +142,11 @@ const createWindow = () => {
   if (isDev) mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL!)
   else mainWindow.loadFile(path.join(indexHtmlPath, 'index.html'))
 
-  ipcMain.on('openPort', (_, deviceName) => startRead(deviceName))
+  ipcMain.handle('readData', getData)
+  ipcMain.handle('portScan', (_, deviceName) => getDeviceInfo(deviceName))
+  ipcMain.on('openPort', startRead)
   ipcMain.on('closePort', stopRead)
   ipcMain.on('saveFile', saveToCSV)
-  ipcMain.handle('portScan', getPortsInfo)
-  ipcMain.handle('readData', getData)
 
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show()
@@ -165,22 +166,21 @@ app.on('window-all-closed', () => {
 })
 
 // 获取串口信息
-async function getPortsInfo() {
+async function getDeviceInfo(deviceName: string) {
   try {
-    portsInfo = await SerialPort.list()
-    if (portsInfo.length == 0) {
-      portsInfo = [{
-        path: '',
-        manufacturer: '',
-        serialNumber: '',
-        pnpId: '',
-        locationId: '',
-        friendlyName: '',
-        vendorId: '',
-        productId: ''
-      }]
+    const portsInfo = await SerialPort.list()
+    const portPath = getPath(deviceName, portsInfo)
+    dInfo = { name: '', port: '', status: false }
+    if (portPath.length == 0) {
+      console.log('name: ', dInfo.name, 'port: ', dInfo.port)
+      return dInfo
+    } else {
+      dInfo.name = deviceName
+      dInfo.port = portPath
+      dInfo.status = true
+      console.log('name: ', dInfo.name, 'port: ', dInfo.port)
+      return dInfo
     }
-    return portsInfo
   } catch (error) {
     console.log(error)
     mainWindow.webContents.send('responseMessage', ResponseCode.PortScanFailed)
@@ -193,26 +193,30 @@ async function getData() {
 }
 
 // 开启串口读取数据
-function startRead(deviceName: string) {
+function startRead() {
+  // 防止重复创建端口
   if (isReading || sp) {
     console.log('alrOpened')
     return
   }
-  const portPath = getPath(deviceName)
-  if (portPath.length == 0) {
+
+  console.log('name: ', dInfo.name, 'port: ', dInfo.port)
+
+  if (dInfo.name.length == 0) {
     mainWindow.webContents.send('responseMessage', ResponseCode.PortScanFailed)
     return
   }
 
-  sp = new SerialPort({ path: portPath, baudRate: 115200, autoOpen: false })
+  // 创建监听端口
+  sp = new SerialPort({ path: dInfo.port, baudRate: 115200, autoOpen: false })
   sp.open((err) => {
     if (err) {
       mainWindow.webContents.send('responseMessage', ResponseCode.PortOpenFailed)
       return
     }
 
-    // 设备连接情况的心跳检测
-    connectDetect(portPath)
+    // 对设备连接情况进行心跳检测
+    connectDetect(dInfo.port)
 
     isReading = true;
     const parser = sp?.pipe(new DelimiterParser({ delimiter: '\n' }))
@@ -253,7 +257,10 @@ function convertStringToArray(input: string): number[] {
   return input.split(',').map(item => Number(item));
 }
 
-function getPath(deviceName: string) {
+function getPath(deviceName: string, portsInfo: PortsInfo[]) {
+  if (portsInfo.length == 0) {
+    return ''
+  }
   for (const pInfo of portsInfo) {
     if (pInfo.serialNumber == deviceName)
       return pInfo.path
