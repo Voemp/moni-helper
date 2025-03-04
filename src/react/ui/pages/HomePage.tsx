@@ -9,15 +9,16 @@ import DeviceInfoCard from '../components/DeviceInfoCard.tsx'
 function HomePage() {
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | undefined>(undefined)
   const [deviceData, setDeviceData] = useState<DeviceData | undefined>(undefined)
+  const [shouldMonitor, setShouldMonitor] = useState(false)
 
   // 获取设备数据
   useEffect(() => {
-    if (!deviceInfo?.status) return
+    if (!shouldMonitor || !deviceInfo?.status) return
     const dataInterval = setInterval(() => {
-      getDeviceData()
+      handleGetDeviceData()
     }, 1000)
     return () => clearInterval(dataInterval)
-  }, [deviceInfo?.status]);
+  }, [shouldMonitor, deviceInfo?.status]);
 
 
   return (
@@ -27,28 +28,30 @@ function HomePage() {
           <Col span={18}>
             <DeviceInfoCard deviceName={deviceInfo?.name} deviceStatus={deviceInfo?.status}
                             devicePort={deviceInfo?.port}
-                            connectDevice={handleConnectDevice} />
+                            connectDevice={handleConnectDevice}
+                            disconnectDevice={handleDisconnectDevice} />
           </Col>
           <Col span={6}>
-            <ActionCard></ActionCard>
+            <ActionCard startMonitoring={handleStartMonitoring} stopMonitoring={handleStopMonitoring}
+                        saveData={handleSaveData} />
           </Col>
         </Row>
         {deviceData ?
           <Row gutter={[8, 8]} style={{marginTop: 8}}>
             <Col span={12}>
-              <DataAreaCard title={'通道 1'} value={deviceData?.data1}></DataAreaCard>
+              <DataAreaCard title={'通道 1'} value={deviceData?.data1} />
             </Col>
             <Col span={12}>
-              <DataAreaCard title={'通道 2'} value={deviceData?.data2}></DataAreaCard>
+              <DataAreaCard title={'通道 2'} value={deviceData?.data2} />
             </Col>
             <Col span={12}>
-              <DataAreaCard title={'通道 3'} value={deviceData?.data3}></DataAreaCard>
+              <DataAreaCard title={'通道 3'} value={deviceData?.data3} />
             </Col>
             <Col span={12}>
-              <DataAreaCard title={'通道 4'} value={deviceData?.data4}></DataAreaCard>
+              <DataAreaCard title={'通道 4'} value={deviceData?.data4} />
             </Col>
           </Row> :
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={'暂无数据'} style={{marginTop: 160}} />
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={'暂无数据'} style={{marginTop: 200}} />
         }
       </Flex>
     </>
@@ -62,15 +65,43 @@ function HomePage() {
           status: r.status,
           port: r.port
         })
-        return true
-      } else {
-        return false
       }
     })
-    return false
   }
 
-  function getDeviceData() {
+  function handleDisconnectDevice() {
+    window.ipcRenderer.invoke('disconnect-device').then(r => {
+      if (r) {
+        cleanDeviceInfo()
+      }
+    })
+  }
+
+  function cleanDeviceInfo() {
+    setDeviceInfo({
+      name: '',
+      status: false,
+      port: ''
+    })
+  }
+
+  function handleStartMonitoring() {
+    setShouldMonitor(true)
+  }
+
+  function handleStopMonitoring() {
+    setShouldMonitor(false)
+  }
+
+  function handleSaveData() {
+    window.ipcRenderer.invoke('save-data', deviceData).then(r => {
+      if (r) {
+        console.log('保存成功')
+      }
+    })
+  }
+
+  function handleGetDeviceData() {
     window.ipcRenderer.invoke('get-device-data').then(r => {
       if (r) {
         setDeviceData({
@@ -79,12 +110,8 @@ function HomePage() {
           data3: r.data3,
           data4: r.data4
         })
-        return true
-      } else {
-        return false
       }
     })
-    return false
   }
 }
 

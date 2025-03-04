@@ -1,4 +1,4 @@
-import { LinkOutlined } from '@ant-design/icons'
+import { DisconnectOutlined, LinkOutlined } from '@ant-design/icons'
 import { Badge, Button, Card, Col, ConfigProvider, Flex, Row, Statistic } from 'antd'
 import { useEffect, useState } from 'react'
 
@@ -6,14 +6,16 @@ interface DeviceInfoProps {
   deviceName?: string
   deviceStatus?: boolean
   devicePort?: string
-  connectDevice: () => boolean
+  connectDevice: () => void
+  disconnectDevice: () => void
 }
 
 function DeviceInfoCard({
                           deviceName = '设备信息',
                           deviceStatus = false,
                           devicePort = '未知',
-                          connectDevice
+                          connectDevice,
+                          disconnectDevice
                         }: DeviceInfoProps) {
   // 显示时间
   const [time, setTime] = useState(new Date())
@@ -32,7 +34,11 @@ function DeviceInfoCard({
       }
     }}>
       <Card title={deviceName}
-            extra={<Button icon={<LinkOutlined />} onClick={connectDevice}>连接设备</Button>}>
+            extra={!deviceStatus ?
+              <Button onClick={connectDevice} icon={<LinkOutlined />}>连接设备</Button> :
+              <Button onClick={disconnectDevice} icon={<DisconnectOutlined />} danger>断开设备</Button>
+            }
+      >
         <Row gutter={4}>
           <Col span={6}>
             <Statistic title="连接状态" valueRender={() => (
