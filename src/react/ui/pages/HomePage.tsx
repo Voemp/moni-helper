@@ -83,6 +83,8 @@ function HomePage() {
   function handleDisconnectDevice() {
     window.ipcRenderer.send('disconnect-device')
     setDeviceInfo(undefined)
+    setDeviceData(undefined)
+    setIsMonitoring(false)
   }
 
   function handleStartMonitoring() {

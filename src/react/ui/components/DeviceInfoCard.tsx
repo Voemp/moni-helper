@@ -12,7 +12,7 @@ interface DeviceInfoProps {
 
 function DeviceInfoCard({
                           deviceName = '设备信息',
-                          devicePort = '/dev/tty.usbmodemFX2348N1',
+                          devicePort = '未知',
                           deviceStatus = false,
                           connectDevice,
                           disconnectDevice
