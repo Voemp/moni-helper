@@ -48,7 +48,6 @@ function DeviceInfoCard({
                 onConfirm={disconnectDevice}>
                 <Button icon={<DisconnectOutlined />} danger>断开设备</Button>
               </Popconfirm>
-
             }>
         <Row gutter={4}>
           <Col span={7}>

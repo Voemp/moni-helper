@@ -27,38 +27,43 @@ function HomePage() {
     return () => clearInterval(dataInterval)
   }, [isMonitoring, deviceInfo?.status])
 
-  // 监听设备意外断开事件
-  window.ipcRenderer.on("responseMessage", (_, message) => {
-    if (message === ResponseCode.DeviceDisconnected) {
-      setUnexpectDisconnectAlert(true)
-      setDeviceInfo(undefined)
-      setIsMonitoring(false)
+  // 监听消息
+  window.ipcRenderer.once("responseMessage", (_, message) => {
+    switch (message) {
+      // 设备意外断开
+      case ResponseCode.DeviceDisconnected:
+        setUnexpectDisconnectAlert(true)
+        setDeviceInfo(undefined)
+        setIsMonitoring(false)
+        break
+      // 数据即将到达缓存上限
+      case ResponseCode.CacheAlmostFulled:
+        message.warning({content: "数据量即将达到缓存上限！（80%）", style: {marginTop: 30}})
+        break
+      // 数据缓存已满
+      case ResponseCode.CacheAlreadyFulled:
+        setShowCacheAlreadyFulledAlert(true)
+        setIsMonitoring(false)
+        setIsCacheFull(true)
+        break
     }
   })
 
-  // 监听缓存已满事件
-  window.ipcRenderer.on("responseMessage", (_, message) => {
-    if (message === ResponseCode.CacheAlreadyFulled) {
-      setShowCacheAlreadyFulledAlert(true)
-      setIsMonitoring(false)
-      setIsCacheFull(true)
-    }
-  })
 
   return (
     <>
-      <>
-        <CenterAlert visible={showConnectErrorAlert} message={"连接失败"}
-                     description={"请检查设备是否正确插入，如果仍有问题，请尝试重新拔插设备或重启程序。"}
-                     type={"error"} onClose={() => setShowConnectErrorAlert(false)} />
-        <CenterAlert visible={showUnexpectDisconnectAlert} message={"意外断开"}
-                     description={"检测到设备意外断开，你仍可以保存已记录的数据。\n注意：重新连接设备后数据会丢失。"}
-                     type={"error"} onClose={() => setUnexpectDisconnectAlert(false)} />
-        <CenterAlert visible={showCacheAlreadyFulledAlert} message={"数据已达上限"}
-                     description={"由于性能考虑，数据量已达缓存上限，请保存并清空数据后再重新开始监测数据。"}
-                     type={"error"} onClose={() => setShowCacheAlreadyFulledAlert(false)} />
-      </>
-      <Flex vertical style={{margin: 8}}>
+      <Flex vertical>
+        <>
+          <CenterAlert visible={showConnectErrorAlert} message={"连接失败"}
+                       description={"请检查设备是否正确插入，如果仍有问题，请尝试重新拔插设备或重启程序。"}
+                       type={"error"} onClose={() => setShowConnectErrorAlert(false)} />
+          <CenterAlert visible={showUnexpectDisconnectAlert} message={"意外断开"}
+                       description={"检测到设备意外断开，你仍可以保存已记录的数据。\n注意：重新连接设备后数据会丢失。"}
+                       type={"error"} onClose={() => setUnexpectDisconnectAlert(false)} />
+          <CenterAlert visible={showCacheAlreadyFulledAlert} message={"数据已达上限"}
+                       description={"由于性能考虑，数据量已达缓存上限，请保存并清空数据后再重新开始监测数据。"}
+                       type={"error"} onClose={() => setShowCacheAlreadyFulledAlert(false)} />
+        </>
         <Row gutter={8}>
           <Col span={18}>
             <DeviceInfoCard deviceName={deviceInfo?.name}
@@ -136,11 +141,7 @@ function HomePage() {
   }
 
   function handleSaveData() {
-    window.ipcRenderer.invoke("save-data", deviceData).then(r => {
-      if (r) {
-        console.log("保存成功")
-      }
-    })
+    window.ipcRenderer.send("save-data", deviceData)
   }
 
   function handleDeleteData() {

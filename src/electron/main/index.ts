@@ -134,6 +134,7 @@ export class Detector {
       console.log('SP alr Init')
       return
     }
+    this.isPause = false
     this.sp = new SerialPort({ path: portPath, baudRate: 115200, autoOpen: false })
     // 创建心跳检测器, 持续检测设备连接状态
     this.initTimer(this.dInfo.port)
@@ -154,6 +155,7 @@ export class Detector {
     })
     // 清除端口与连接检测器
     this.sp = null
+    this.isPause = false
     this.stopTimer()
   }
 
@@ -262,7 +264,7 @@ const createWindow = () => {
   ipcMain.on('start-monitoring', startRead)
   ipcMain.on("stop-monitoring", stopRead)
 
-  ipcMain.on('saveFile', saveToCSV)
+  ipcMain.on("save-data", saveToCSV)
   ipcMain.on("delete-data", clearCache)
 
   mainWindow.once('ready-to-show', () => {
