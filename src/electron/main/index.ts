@@ -4,6 +4,7 @@ import * as fs from 'node:fs'
 import path from 'node:path'
 import { SerialPort } from 'serialport'
 import { DeviceInfo } from '../../types/DeviceInfo'
+import { DeviceData } from '../../types/DeviceData'
 import { ResponseCode } from '../../types/ResponseCode'
 
 const isDev = process.env.NODE_ENV === 'development'
@@ -24,13 +25,6 @@ export interface PortsInfo {
   friendlyName: string
   vendorId: string
   productId: string
-}
-
-export interface DeviceData {
-  data1: number[]
-  data2: number[]
-  data3: number[]
-  data4: number[]
 }
 
 export class PortData {
@@ -134,19 +128,19 @@ export class Detector {
       return
     }
     this.sp = new SerialPort({ path: portPath, baudRate: 115200, autoOpen: false })
+    // 创建心跳检测器, 持续检测设备连接状态
+    this.initTimer(portData.getDeviceInfo().port)
   }
 
-  // 关闭监听端口
-  public stopSP() {
-    this.sp?.removeAllListeners()
-    this.sp?.close((err) => {
-      if (err) {
-        mainWindow.webContents.send('responseMessage', ResponseCode.PortCloseFailed)
-      }
-      // 清除通道与连接检测器
-      this.sp = null
-      this.stopTimer()
-    });
+  // 销毁监听端口
+  public deleteSP() {
+    if (!this.getSPStat()) {
+      console.log('SP has not Init')
+      return
+    }
+    // 清除通道与连接检测器
+    this.sp = null
+    this.stopTimer()
   }
 
   // 打开监听端口,并开始接受数据
@@ -161,22 +155,23 @@ export class Detector {
         mainWindow.webContents.send('responseMessage', ResponseCode.PortOpenFailed)
         return
       }
-      // 对设备连接情况进行心跳检测
-      this.initTimer(portData.getDeviceInfo().port)
       // 创建数据流管道并开始读入数据
-      const parser = this.sp?.pipe(new DelimiterParser({ delimiter: '\n' }))
-      parser?.on('data', chunk => {
-        const callback = portData.add(convertStringToArray(chunk.toString()))
-        if (callback == 1) {
-          mainWindow.webContents.send('responseMessage', ResponseCode.CacheAlmostFulled)
-          console.log("Data cache nearly full!!!!!")
-        } else if (callback == 2) {
-          mainWindow.webContents.send('responseMessage', ResponseCode.CacheAlreadyFulled)
-          console.log("Data cache fulled, read stopped!!!!!!")
-          stopRead()
-          saveToCSV()
-        }
-      })
+      makePipe(this.sp as SerialPort)
+    })
+  }
+
+  // 关闭监听端口, 并停止接受数据
+  public closeSP() {
+    // 防止重复关闭端口
+    if (!this.sp?.isOpen) {
+      console.log('SP alr Closed')
+      return
+    }
+    this.sp?.removeAllListeners()
+    this.sp?.close((err) => {
+      if (err) {
+        mainWindow.webContents.send('responseMessage', ResponseCode.PortCloseFailed)
+      }
     })
   }
 
@@ -194,7 +189,6 @@ export class Detector {
         mainWindow.webContents.send('responseMessage', ResponseCode.DeviceDisconnected)
         console.log('Device disconnected unexpectedly')
         stopRead()
-        await saveToCSV()
       } else {
         console.log('Device connecting')
       }
@@ -238,11 +232,15 @@ const createWindow = () => {
   if (isDev) mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL!)
   else mainWindow.loadFile(path.join(indexHtmlPath, 'index.html'))
 
-  ipcMain.handle('get-device-data', getData)
   ipcMain.handle('connect-device', (_, deviceName) => getDeviceInfo(deviceName))
+  ipcMain.on('disconnect-device', disconnectDevice)
+
+  ipcMain.handle('get-device-data', getData)
   ipcMain.on('start-monitoring', startRead)
-  ipcMain.on('disconnect-device', stopRead)
-  ipcMain.on('saveFile', saveToCSV)
+  ipcMain.on('', stopRead)
+
+  // ipcMain.on('saveFile', saveToCSV)
+  ipcMain.on('', clearCache)
 
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show()
@@ -261,7 +259,7 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })
 
-// 获取串口信息
+// 获取串口信息, 若获得信息则初始化监听端口
 async function getDeviceInfo(deviceName: string) {
   try {
     const portsInfo = await SerialPort.list()
@@ -287,6 +285,22 @@ async function getData() {
   return await portData.getPromiseData()
 }
 
+// 为已创建的端口绑定管道
+function makePipe(sp: SerialPort) {
+  const parser = sp.pipe(new DelimiterParser({ delimiter: '\n' }))
+  parser.on('data', chunk => {
+    const callback = portData.add(convertStringToArray(chunk.toString()))
+    if (callback == 1) {
+      mainWindow.webContents.send('responseMessage', ResponseCode.CacheAlmostFulled)
+      console.log("Data cache nearly full!!!!!")
+    } else if (callback == 2) {
+      mainWindow.webContents.send('responseMessage', ResponseCode.CacheAlreadyFulled)
+      console.log("Data cache fulled, read stopped!!!!!!")
+      stopRead()
+    }
+  })
+}
+
 // 从已初始化的串口中读取数据
 function startRead() {
   // 防止串口未初始化就读取
@@ -301,10 +315,24 @@ function startRead() {
 
 // 停止串口读取数据
 function stopRead() {
-  if (detector.getSPStat()) {
-    console.log('closeNOW!!!')
-    detector.stopSP()
+  if (!detector.getSPStat()) {
+    console.log('SP has not init')
+    return
   }
+  console.log('closeNOW!!!')
+  // 关闭监听窗口
+  detector.closeSP()
+}
+
+// 销毁监听端口并断开设备
+function disconnectDevice() {
+  clearCache()
+  detector.deleteSP()
+}
+
+// 清空缓存数据
+function clearCache() {
+  portData.init()
 }
 
 function convertStringToArray(input: string): number[] {
@@ -322,16 +350,16 @@ function getPath(deviceName: string, portsInfo: PortsInfo[]) {
   return ''
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function saveToCSV(): Promise<void> {
-  mainWindow.webContents.send('responseMessage', ResponseCode.SaveConfirmation)
+  // 停止继续读取
+  stopRead()
   console.log('lenght of cache:', portData.getLength())
   const saveConfirm = await confirmSave()
   console.log('lenght of cache:', portData.getLength())
   if (!saveConfirm) {
     return
   } else {
-    // 停止继续读取
-    stopRead()
     return new Promise<void>((resolve, reject) => {
       // 创建文件的写入流
       const filePath = path.join(app.getAppPath(), './saveData.csv')
@@ -369,8 +397,6 @@ async function saveToCSV(): Promise<void> {
 function afterSave(sign: boolean) {
   if (sign) {
     mainWindow.webContents.send('responseMessage', ResponseCode.SaveFileFinished)
-    // 清除数据缓存
-    portData.init()
   } else {
     mainWindow.webContents.send('responseMessage', ResponseCode.SaveFileFailed)
   }
