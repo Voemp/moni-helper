@@ -1,11 +1,11 @@
-import { DelimiterParser } from '@serialport/parser-delimiter'
-import { app, BrowserWindow, ipcMain, nativeImage, dialog } from 'electron'
-import * as fs from 'node:fs'
-import path from 'node:path'
-import { SerialPort } from 'serialport'
-import { DeviceInfo } from '../../types/DeviceInfo'
-import { DeviceData } from '../../types/DeviceData'
-import { ResponseCode } from '../../types/ResponseCode'
+import { DelimiterParser } from "@serialport/parser-delimiter"
+import { app, BrowserWindow, dialog, ipcMain, nativeImage } from "electron"
+import * as fs from "node:fs"
+import path from "node:path"
+import { SerialPort } from "serialport"
+import { DeviceData } from "../../types/DeviceData"
+import { DeviceInfo } from "../../types/DeviceInfo"
+import { ResponseCode } from "../../types/ResponseCode"
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -253,10 +253,10 @@ const createWindow = () => {
 
   ipcMain.handle('get-device-data', getData)
   ipcMain.on('start-monitoring', startRead)
-  ipcMain.on('', stopRead)
+  ipcMain.on("stop-monitoring", stopRead)
 
   ipcMain.on('saveFile', saveToCSV)
-  ipcMain.on('', clearCache)
+  ipcMain.on("delete-data", clearCache)
 
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show()

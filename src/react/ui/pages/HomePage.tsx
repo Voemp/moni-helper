@@ -13,8 +13,10 @@ function HomePage() {
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | undefined>(undefined)
   const [deviceData, setDeviceData] = useState<DeviceData | undefined>(undefined)
   const [isMonitoring, setIsMonitoring] = useState(false)
+  const [isCacheFull, setIsCacheFull] = useState(false)
   const [showConnectErrorAlert, setShowConnectErrorAlert] = useState(false)
   const [showUnexpectDisconnectAlert, setUnexpectDisconnectAlert] = useState(false)
+  const [showCacheAlreadyFulledAlert, setShowCacheAlreadyFulledAlert] = useState(false)
 
   // 获取设备数据
   useEffect(() => {
@@ -34,19 +36,29 @@ function HomePage() {
     }
   })
 
+  // 监听缓存已满事件
+  window.ipcRenderer.on("responseMessage", (_, message) => {
+    if (message === ResponseCode.CacheAlreadyFulled) {
+      setShowCacheAlreadyFulledAlert(true)
+      setIsMonitoring(false)
+      setIsCacheFull(true)
+    }
+  })
+
   return (
     <>
-      <Flex vertical style={{margin: 8}}>
-
+      <>
         <CenterAlert visible={showConnectErrorAlert} message={"连接失败"}
-                     description={"请检查设备是否正确插入，如果仍有问题，请尝试重新拔插设备或重启程序。"} type={"error"}
-                     onClose={() => {
-                       setShowConnectErrorAlert(false)
-                     }} />
+                     description={"请检查设备是否正确插入，如果仍有问题，请尝试重新拔插设备或重启程序。"}
+                     type={"error"} onClose={() => setShowConnectErrorAlert(false)} />
         <CenterAlert visible={showUnexpectDisconnectAlert} message={"意外断开"}
                      description={"检测到设备意外断开，你仍可以保存已记录的数据。\n注意：重新连接设备后数据会丢失。"}
-                     type={"error"}
-                     onClose={() => setUnexpectDisconnectAlert(false)} />
+                     type={"error"} onClose={() => setUnexpectDisconnectAlert(false)} />
+        <CenterAlert visible={showCacheAlreadyFulledAlert} message={"数据已达上限"}
+                     description={"由于性能考虑，数据量已达缓存上限，请保存并清空数据后再重新开始监测数据。"}
+                     type={"error"} onClose={() => setShowCacheAlreadyFulledAlert(false)} />
+      </>
+      <Flex vertical style={{margin: 8}}>
         <Row gutter={8}>
           <Col span={18}>
             <DeviceInfoCard deviceName={deviceInfo?.name}
@@ -58,28 +70,31 @@ function HomePage() {
           <Col span={6}>
             <ActionCard deviceStatus={deviceInfo?.status}
                         isMonitoring={isMonitoring}
+                        isCacheFull={isCacheFull}
                         hasGotData={deviceData !== undefined}
                         startMonitoring={handleStartMonitoring}
                         stopMonitoring={handleStopMonitoring}
-                        saveData={handleSaveData} />
+                        saveData={handleSaveData}
+                        deleteData={handleDeleteData} />
           </Col>
         </Row>
-        {deviceData ?
-          <Row gutter={[8, 8]} style={{marginTop: 8}}>
-            <Col span={12}>
-              <DataAreaCard title={"通道 1"} value={deviceData?.data1} />
-            </Col>
-            <Col span={12}>
-              <DataAreaCard title={"通道 2"} value={deviceData?.data2} />
-            </Col>
-            <Col span={12}>
-              <DataAreaCard title={"通道 3"} value={deviceData?.data3} />
-            </Col>
-            <Col span={12}>
-              <DataAreaCard title={"通道 4"} value={deviceData?.data4} />
-            </Col>
-          </Row> :
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={"暂无数据"} style={{marginTop: 200}} />
+        {
+          deviceData ?
+            <Row gutter={[8, 8]} style={{marginTop: 8}}>
+              <Col span={12}>
+                <DataAreaCard title={"通道 1"} value={deviceData?.data1} />
+              </Col>
+              <Col span={12}>
+                <DataAreaCard title={"通道 2"} value={deviceData?.data2} />
+              </Col>
+              <Col span={12}>
+                <DataAreaCard title={"通道 3"} value={deviceData?.data3} />
+              </Col>
+              <Col span={12}>
+                <DataAreaCard title={"通道 4"} value={deviceData?.data4} />
+              </Col>
+            </Row> :
+            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={"暂无数据"} style={{marginTop: 200}} />
         }
       </Flex>
     </>
@@ -94,6 +109,7 @@ function HomePage() {
           status: r.status
         })
         setDeviceData(undefined)
+        setIsCacheFull(false)
         message.success({content: "连接成功", duration: 1, style: {marginTop: 30}})
       } else {
         setShowConnectErrorAlert(true)
@@ -106,6 +122,7 @@ function HomePage() {
     setDeviceInfo(undefined)
     setDeviceData(undefined)
     setIsMonitoring(false)
+    setIsCacheFull(false)
   }
 
   function handleStartMonitoring() {
@@ -124,6 +141,12 @@ function HomePage() {
         console.log("保存成功")
       }
     })
+  }
+
+  function handleDeleteData() {
+    window.ipcRenderer.send("delete-data")
+    setDeviceData(undefined)
+    setIsCacheFull(false)
   }
 
   async function handleGetDeviceData() {
