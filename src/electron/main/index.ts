@@ -200,7 +200,7 @@ export class Detector {
   }
 
   // 获取端口暂停状态
-  public getSPPauseStat() : boolean {
+  public getSPPauseStat(): boolean {
     return this.isPause
   }
 
@@ -385,18 +385,16 @@ function getPath(deviceName: string, portsInfo: PortsInfo[]) {
 async function saveToCSV(): Promise<void> {
   // 停止继续读取
   stopRead()
-  console.log('length of cache:', portData.getLength())
   // 弹出窗口等待用户指定保存位置
   const savePath = await showSaveDialog()
+  console.log('path to save:', savePath)
+  console.log('length of cache:', portData.getLength())
   try {
     await new Promise<void>((resolve, reject) => {
-      if (savePath.length == 0) {
-        reject()
-        return
-      }
+      // 若用户取消保存, 直接返回
+      if (savePath.length == 0) return
       // 创建文件的写入流
-      const filePath = path.join(savePath, './saveData.csv')
-      const writeStream = fs.createWriteStream(filePath)
+      const writeStream = fs.createWriteStream(savePath)
       // 获取当前的缓存数据
       const dataCache = portData.getAllData()
       // 写入CSV的标题行
@@ -414,9 +412,9 @@ async function saveToCSV(): Promise<void> {
       // 完成写入后，关闭流
       writeStream.end()
       // 监听文件流完成事件
-      writeStream.on('finish', () => resolve)
+      writeStream.on('finish', () => resolve())
       // 监听文件流错误事件
-      writeStream.on('error', () => reject)
+      writeStream.on('error', () => reject())
     })
     return mainWindow.webContents.send('responseMessage', ResponseCode.SaveFileFinished)
   } catch {
@@ -428,9 +426,10 @@ async function saveToCSV(): Promise<void> {
 async function showSaveDialog(): Promise<string> {
   const savePath = await dialog.showSaveDialog({
     filters: [
-      { name: 'Text Files', extensions: ['txt', 'csv'] },
-      { name: 'All Files', extensions: ['*'] }],
-    properties: ['showHiddenFiles', 'createDirectory']
+      { name: 'CSV Files', extensions: ['csv'] },
+      { name: 'TXT Files', extensions: ['txt'] }],
+    properties: ['showHiddenFiles', 'createDirectory'],
+    defaultPath: 'saveData.csv'
   })
   return savePath.filePath
 }
