@@ -286,8 +286,9 @@ async function getDeviceInfo(deviceName: string) {
     } else {
       detector.setDeviceInfo({ name: deviceName, port: portPath, status: true })
       console.log('name: ', detector.getDeviceInfo().name, 'port: ', detector.getDeviceInfo().port)
-      // 创建监听端口
+      // 创建监听端口并清空数据缓存
       detector.initSP(detector.getDeviceInfo().port)
+      clearCache()
       return detector.getDeviceInfo()
     }
   } catch (error) {
@@ -341,13 +342,13 @@ function stopRead() {
 // 销毁监听端口并断开设备, 同时清除数据缓存
 function disconnectDevice() {
   clearCache()
+  detector.initDeviceInfo()
   detector.closeAndDeleteSP()
 }
 
 // 清空缓存数据
 function clearCache() {
   portData.init()
-  detector.initDeviceInfo()
 }
 
 function convertStringToArray(input: string): number[] {
