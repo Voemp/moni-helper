@@ -1,5 +1,5 @@
 import { DelimiterParser } from '@serialport/parser-delimiter'
-import { app, BrowserWindow, ipcMain, nativeImage } from 'electron'
+import { app, BrowserWindow, ipcMain, nativeImage, dialog } from 'electron'
 import * as fs from 'node:fs'
 import path from 'node:path'
 import { SerialPort } from 'serialport'
@@ -239,7 +239,7 @@ const createWindow = () => {
   ipcMain.on('start-monitoring', startRead)
   ipcMain.on('', stopRead)
 
-  // ipcMain.on('saveFile', saveToCSV)
+  ipcMain.on('saveFile', saveToCSV)
   ipcMain.on('', clearCache)
 
   mainWindow.once('ready-to-show', () => {
@@ -350,19 +350,21 @@ function getPath(deviceName: string, portsInfo: PortsInfo[]) {
   return ''
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// 将缓存数据保存至CSV文件
 async function saveToCSV(): Promise<void> {
   // 停止继续读取
   stopRead()
-  console.log('lenght of cache:', portData.getLength())
-  const saveConfirm = await confirmSave()
-  console.log('lenght of cache:', portData.getLength())
-  if (!saveConfirm) {
-    return
-  } else {
-    return new Promise<void>((resolve, reject) => {
+  console.log('length of cache:', portData.getLength())
+  // 弹出窗口等待用户指定保存位置
+  const savePath = await showSaveDialog()
+  try {
+    await new Promise<void>((resolve, reject) => {
+      if (savePath.length == 0) {
+        reject()
+        return
+      }
       // 创建文件的写入流
-      const filePath = path.join(app.getAppPath(), './saveData.csv')
+      const filePath = path.join(savePath, './saveData.csv')
       const writeStream = fs.createWriteStream(filePath)
       // 获取当前的缓存数据
       const dataCache = portData.getAllData()
@@ -375,36 +377,29 @@ async function saveToCSV(): Promise<void> {
           dataCache.data2[i],
           dataCache.data3[i],
           dataCache.data4[i]
-        ];
+        ]
         writeStream.write(`${row.join(',')}\n`)
       }
       // 完成写入后，关闭流
       writeStream.end()
       // 监听文件流完成事件
-      writeStream.on('finish', () => {
-        resolve()
-      })
+      writeStream.on('finish', () => resolve)
       // 监听文件流错误事件
-      writeStream.on('error', () => {
-        reject()
-      })
-    }).then(() => afterSave(true))
-      .catch(() => afterSave(false))
-  }
-}
-
-// 保存之后的处理
-function afterSave(sign: boolean) {
-  if (sign) {
-    mainWindow.webContents.send('responseMessage', ResponseCode.SaveFileFinished)
-  } else {
-    mainWindow.webContents.send('responseMessage', ResponseCode.SaveFileFailed)
+      writeStream.on('error', () => reject)
+    })
+    return mainWindow.webContents.send('responseMessage', ResponseCode.SaveFileFinished)
+  } catch {
+    return mainWindow.webContents.send('responseMessage', ResponseCode.SaveFileFailed)
   }
 }
 
 // 确认是否保存,保存成功后会自动清除缓存
-function confirmSave(): Promise<boolean> {
-  return new Promise<boolean>((resolve) => {
-    ipcMain.once('confirmSave', (_, sign) => resolve(sign))
+async function showSaveDialog(): Promise<string> {
+  const savePath = await dialog.showSaveDialog({
+    filters: [
+      { name: 'Text Files', extensions: ['txt', 'csv'] },
+      { name: 'All Files', extensions: ['*'] }],
+    properties: ['showHiddenFiles', 'createDirectory']
   })
+  return savePath.filePath
 }
