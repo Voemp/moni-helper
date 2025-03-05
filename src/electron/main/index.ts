@@ -31,10 +31,8 @@ export class PortData {
   private dataCache: DeviceData
   private maxSize: number
   private sign: boolean
-  private dInfo: DeviceInfo
 
   constructor() {
-    this.dInfo = { name: '', port: '', status: false }
     this.dataCache = { data1: [], data2: [], data3: [], data4: [] }
     this.maxSize = 2000
     this.sign = true
@@ -42,27 +40,9 @@ export class PortData {
 
   // 初始化数据缓存
   public init() {
-    this.dInfo = { name: '', port: '', status: false }
     this.dataCache = { data1: [], data2: [], data3: [], data4: [] }
     this.maxSize = 2000
     this.sign = true
-  }
-
-  // 设置设备信息
-  public setDeviceInfo(dInfo: DeviceInfo) {
-    this.dInfo.name = dInfo.name
-    this.dInfo.port = dInfo.port
-    this.dInfo.status = dInfo.status
-  }
-
-  // 获取设备信息
-  public getDeviceInfo(): DeviceInfo {
-    return this.dInfo
-  }
-
-  // 获取连接状态
-  public getConnectState(): boolean {
-    return this.dInfo.port.length != 0
   }
 
   // 添加新的数据，保证长度不超过1000000
@@ -116,9 +96,34 @@ export class PortData {
 export class Detector {
   private sp: SerialPort | null
   private timerId: NodeJS.Timeout | null
+  private dInfo: DeviceInfo
+
   constructor() {
     this.sp = null
     this.timerId = null
+    this.dInfo = { name: '', port: '', status: false }
+  }
+
+  // 重置设备信息
+  public initDeviceInfo() {
+    this.dInfo = { name: '', port: '', status: false }
+  }
+
+  // 设置设备信息
+  public setDeviceInfo(dInfo: DeviceInfo) {
+    this.dInfo.name = dInfo.name
+    this.dInfo.port = dInfo.port
+    this.dInfo.status = dInfo.status
+  }
+
+  // 获取设备信息
+  public getDeviceInfo(): DeviceInfo {
+    return this.dInfo
+  }
+
+  // 获取连接状态
+  public getConnectState(): boolean {
+    return this.dInfo.port.length != 0
   }
 
   // 新建监听端口
@@ -129,25 +134,38 @@ export class Detector {
     }
     this.sp = new SerialPort({ path: portPath, baudRate: 115200, autoOpen: false })
     // 创建心跳检测器, 持续检测设备连接状态
-    this.initTimer(portData.getDeviceInfo().port)
+    this.initTimer(this.dInfo.port)
   }
 
-  // 销毁监听端口
-  public deleteSP() {
+  // 关闭并销毁监听端口
+  public closeAndDeleteSP() {
     if (!this.getSPStat()) {
       console.log('SP has not Init')
       return
     }
-    // 清除通道与连接检测器
+    // 关闭监听端口
+    this.sp?.removeAllListeners()
+    this.sp?.close((err) => {
+      if (err) {
+        mainWindow.webContents.send('responseMessage', ResponseCode.PortCloseFailed)
+      }
+    })
+    // 清除端口与连接检测器
     this.sp = null
     this.stopTimer()
   }
 
-  // 打开监听端口,并开始接受数据
-  public openSP() {
+  // 打开监听端口, 若被暂停则恢复
+  public openOrResumeSP() {
     // 防止重复打开端口
     if (this.sp?.isOpen) {
       console.log('SP alr Open')
+      if (this.sp.isPaused()) {
+        console.log('SP is Resume')
+        this.sp.resume()
+      } else {
+        console.log('SP has not Paused')
+      }
       return
     }
     this.sp?.open((err) => {
@@ -160,19 +178,16 @@ export class Detector {
     })
   }
 
-  // 关闭监听端口, 并停止接受数据
-  public closeSP() {
-    // 防止重复关闭端口
-    if (!this.sp?.isOpen) {
-      console.log('SP alr Closed')
-      return
-    }
-    this.sp?.removeAllListeners()
-    this.sp?.close((err) => {
-      if (err) {
-        mainWindow.webContents.send('responseMessage', ResponseCode.PortCloseFailed)
+  // 暂停监听端口
+  public pauseSP() {
+    if (this.sp?.isOpen) {
+      if (this.sp.isPaused()) {
+        console.log('SP alr Paused')
+      } else {
+        console.log('SP is Pause')
+        this.sp.pause()
       }
-    })
+    }
   }
 
   // 获取端口状态
@@ -265,14 +280,14 @@ async function getDeviceInfo(deviceName: string) {
     const portsInfo = await SerialPort.list()
     const portPath = getPath(deviceName, portsInfo)
     if (portPath.length == 0) {
-      console.log('name: ', portData.getDeviceInfo().name, 'port: ', portData.getDeviceInfo().port)
-      return portData.getDeviceInfo()
+      console.log('name: ', detector.getDeviceInfo().name, 'port: ', detector.getDeviceInfo().port)
+      return detector.getDeviceInfo()
     } else {
-      portData.setDeviceInfo({ name: deviceName, port: portPath, status: true })
-      console.log('name: ', portData.getDeviceInfo().name, 'port: ', portData.getDeviceInfo().port)
+      detector.setDeviceInfo({ name: deviceName, port: portPath, status: true })
+      console.log('name: ', detector.getDeviceInfo().name, 'port: ', detector.getDeviceInfo().port)
       // 创建监听端口
-      detector.initSP(portData.getDeviceInfo().port)
-      return portData.getDeviceInfo()
+      detector.initSP(detector.getDeviceInfo().port)
+      return detector.getDeviceInfo()
     }
   } catch (error) {
     console.log(error)
@@ -296,6 +311,7 @@ function makePipe(sp: SerialPort) {
     } else if (callback == 2) {
       mainWindow.webContents.send('responseMessage', ResponseCode.CacheAlreadyFulled)
       console.log("Data cache fulled, read stopped!!!!!!")
+      detector.initDeviceInfo()
       stopRead()
     }
   })
@@ -308,9 +324,8 @@ function startRead() {
     console.log('SP has not init')
     return
   }
-  console.log('name: ', portData.getDeviceInfo().name, 'port: ', portData.getDeviceInfo().port)
-  // 创建监听端口
-  detector.openSP()
+  // 创建或继续监听端口
+  detector.openOrResumeSP()
 }
 
 // 停止串口读取数据
@@ -319,20 +334,20 @@ function stopRead() {
     console.log('SP has not init')
     return
   }
-  console.log('closeNOW!!!')
-  // 关闭监听窗口
-  detector.closeSP()
+  // 暂停监听窗口
+  detector.pauseSP()
 }
 
-// 销毁监听端口并断开设备
+// 销毁监听端口并断开设备, 同时清除数据缓存
 function disconnectDevice() {
   clearCache()
-  detector.deleteSP()
+  detector.closeAndDeleteSP()
 }
 
 // 清空缓存数据
 function clearCache() {
   portData.init()
+  detector.initDeviceInfo()
 }
 
 function convertStringToArray(input: string): number[] {
