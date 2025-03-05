@@ -26,8 +26,11 @@ function DeviceInfoCard({
   }, [])
 
   // 截取字符串
-  const truncate = (str: string, maxLength = 10) =>
-    str.length > maxLength ? str.substring(0, maxLength / 2) + "..." + str.substring(str.length - maxLength / 2) : str
+  function truncate(str: string, maxLength = 10) {
+    if (process.platform === "darwin" || process.platform === "linux") str.substring(5, maxLength)
+    return str.length > maxLength ? str.substring(0, maxLength / 2) + "..." + str.substring(str.length - maxLength / 2) : str
+  }
+
 
   return (
     <ConfigProvider theme={{
