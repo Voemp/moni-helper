@@ -33,7 +33,7 @@ function ActionCard({
           <Button onClick={stopMonitoring} icon={<StopOutlined />} style={{width: '100%', height: '30%'}}
                   disabled={!deviceStatus || !isMonitoring}>停止监测</Button>
           <Button onClick={saveData} icon={<DownloadOutlined />} style={{width: '100%', height: '30%'}}
-                  disabled={!deviceStatus || !hasGotData}>保存数据</Button>
+                  disabled={!deviceStatus || isMonitoring || !hasGotData}>保存数据</Button>
         </Flex>
       </Card>
     </ConfigProvider>
