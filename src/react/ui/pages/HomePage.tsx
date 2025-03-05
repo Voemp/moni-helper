@@ -23,7 +23,7 @@ function HomePage() {
     if (!isMonitoring || !deviceInfo?.status) return
     const dataInterval = setInterval(() => {
       handleGetDeviceData()
-    }, 500)
+    }, 100)
     return () => clearInterval(dataInterval)
   }, [isMonitoring, deviceInfo?.status])
 

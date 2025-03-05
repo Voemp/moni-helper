@@ -96,11 +96,13 @@ export class PortData {
 export class Detector {
   private sp: SerialPort | null
   private timerId: NodeJS.Timeout | null
+  private isPause: boolean
   private dInfo: DeviceInfo
 
   constructor() {
     this.sp = null
     this.timerId = null
+    this.isPause = false
     this.dInfo = { name: '', port: '', status: false }
   }
 
@@ -128,7 +130,7 @@ export class Detector {
 
   // 新建监听端口
   public initSP(portPath: string) {
-    if (this.getSPStat()) {
+    if (this.getSPInitStat()) {
       console.log('SP alr Init')
       return
     }
@@ -139,7 +141,7 @@ export class Detector {
 
   // 关闭并销毁监听端口
   public closeAndDeleteSP() {
-    if (!this.getSPStat()) {
+    if (!this.getSPInitStat()) {
       console.log('SP has not Init')
       return
     }
@@ -160,9 +162,9 @@ export class Detector {
     // 防止重复打开端口
     if (this.sp?.isOpen) {
       console.log('SP alr Open')
-      if (this.sp.isPaused()) {
+      if (this.isPause) {
         console.log('SP is Resume')
-        this.sp.resume()
+        this.isPause = false
       } else {
         console.log('SP has not Paused')
       }
@@ -181,18 +183,23 @@ export class Detector {
   // 暂停监听端口
   public pauseSP() {
     if (this.sp?.isOpen) {
-      if (this.sp.isPaused()) {
+      if (this.isPause) {
         console.log('SP alr Paused')
       } else {
         console.log('SP is Pause')
-        this.sp.pause()
+        this.isPause = true
       }
     }
   }
 
-  // 获取端口状态
-  public getSPStat(): boolean {
+  // 获取端口初始化状态
+  public getSPInitStat(): boolean {
     return !!this.sp
+  }
+
+  // 获取端口暂停状态
+  public getSPPauseStat() : boolean {
+    return this.isPause
   }
 
   // 初始化心跳检测器
@@ -305,7 +312,12 @@ async function getData() {
 // 为已创建的端口绑定管道
 function makePipe(sp: SerialPort) {
   const parser = sp.pipe(new DelimiterParser({ delimiter: '\n' }))
-  parser.on('data', chunk => {
+  parser.on('data', (chunk: Buffer) => {
+    // 若当前端口为暂停状态, 放弃当前Buffer内的数据
+    if (detector.getSPPauseStat()) {
+      chunk.fill('')
+      return
+    }
     const callback = portData.add(convertStringToArray(chunk.toString()))
     if (callback == 1) {
       mainWindow.webContents.send('responseMessage', ResponseCode.CacheAlmostFulled)
@@ -320,8 +332,8 @@ function makePipe(sp: SerialPort) {
 
 // 从已初始化的串口中读取数据
 function startRead() {
-  // 防止串口未初始化就读取
-  if (!detector.getSPStat()) {
+  // 防止串口未初始化
+  if (!detector.getSPInitStat()) {
     console.log('SP has not init')
     return
   }
@@ -331,7 +343,8 @@ function startRead() {
 
 // 停止串口读取数据
 function stopRead() {
-  if (!detector.getSPStat()) {
+  // 防止串口未初始化
+  if (!detector.getSPInitStat()) {
     console.log('SP has not init')
     return
   }
