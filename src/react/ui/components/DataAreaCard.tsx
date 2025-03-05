@@ -1,6 +1,6 @@
-import { Area } from '@ant-design/charts'
-import { Card, ConfigProvider } from 'antd'
-import { useEffect, useState } from 'react'
+import { Area } from "@ant-design/charts"
+import { Card, ConfigProvider } from "antd"
+import { useEffect, useState } from "react"
 
 interface DataAreaProps {
   title?: string
@@ -30,6 +30,7 @@ function DataAreaCard({title = '未命名', value = undefined}: DataAreaProps) {
     title: title,
     xField: 'index',
     yField: 'value',
+    animate: false,
     shapeField: 'smooth',
     smooth: true,
     height: chartHeight,
