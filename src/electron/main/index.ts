@@ -203,7 +203,8 @@ export class Detector {
       if (!sign) {
         mainWindow.webContents.send('responseMessage', ResponseCode.DeviceDisconnected)
         console.log('Device disconnected unexpectedly')
-        stopRead()
+        this.initDeviceInfo()
+        this.closeAndDeleteSP()
       } else {
         console.log('Device connecting')
       }
@@ -311,7 +312,6 @@ function makePipe(sp: SerialPort) {
     } else if (callback == 2) {
       mainWindow.webContents.send('responseMessage', ResponseCode.CacheAlreadyFulled)
       console.log("Data cache fulled, read stopped!!!!!!")
-      detector.initDeviceInfo()
       stopRead()
     }
   })
