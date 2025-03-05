@@ -1,11 +1,11 @@
-import { Col, Empty, Flex, Row } from 'antd'
-import { useEffect, useState } from 'react'
-import { DeviceData } from '../../../types/DeviceData'
-import { DeviceInfo } from '../../../types/DeviceInfo'
-import ActionCard from '../components/ActionCard.tsx'
-import DataAreaCard from '../components/DataAreaCard.tsx'
-import DeviceConnectErrorAlert from '../components/DeviceConnectErrorAlert.tsx'
-import DeviceInfoCard from '../components/DeviceInfoCard.tsx'
+import { Col, Empty, Flex, Row } from "antd"
+import { useEffect, useState } from "react"
+import { DeviceData } from "../../../types/DeviceData"
+import { DeviceInfo } from "../../../types/DeviceInfo"
+import ActionCard from "../components/ActionCard.tsx"
+import CenterAlert from "../components/CenterAlert.tsx"
+import DataAreaCard from "../components/DataAreaCard.tsx"
+import DeviceInfoCard from "../components/DeviceInfoCard.tsx"
 
 function HomePage() {
   const myDeviceName = 'FX2348N'
@@ -21,13 +21,15 @@ function HomePage() {
       handleGetDeviceData()
     }, 1000)
     return () => clearInterval(dataInterval)
-  }, [isMonitoring, deviceInfo?.status]);
+  }, [isMonitoring, deviceInfo?.status])
 
 
   return (
     <>
       <Flex vertical style={{margin: 8}}>
-        <DeviceConnectErrorAlert visible={showConnectErrorAlert} onClose={() => setShowConnectErrorAlert(false)} />
+        <CenterAlert visible={showConnectErrorAlert} message={"连接失败"}
+                     description={"请检查设备是否正确插入，如果仍有问题，请尝试重新拔插设备或重启程序。"} type={"error"}
+                     onClose={() => setShowConnectErrorAlert(false)} />
         <Row gutter={8}>
           <Col span={18}>
             <DeviceInfoCard deviceName={deviceInfo?.name}
