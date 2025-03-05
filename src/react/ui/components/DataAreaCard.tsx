@@ -12,7 +12,7 @@ function DataAreaCard({title = '未命名', value = undefined}: DataAreaProps) {
   const data = value?.map((value, index) => ({value, index}))
 
   // 计算窗口可用高度
-  const getChartHeight = () => (window.innerHeight - 232) * 0.5
+  const getChartHeight = () => (window.innerHeight - 262) * 0.5
 
   const [chartHeight, setChartHeight] = useState(getChartHeight())
 

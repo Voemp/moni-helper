@@ -88,12 +88,13 @@ function HomePage() {
   }
 
   function handleStartMonitoring() {
+    window.ipcRenderer.send('start-monitoring')
     setIsMonitoring(true)
   }
 
   function handleStopMonitoring() {
+    window.ipcRenderer.send('stop-monitoring')
     setIsMonitoring(false)
-    setDeviceData(undefined)
   }
 
   function handleSaveData() {

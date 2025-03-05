@@ -182,7 +182,7 @@ export class Detector {
 
   // 获取端口状态
   public getSPStat(): boolean {
-    return this.sp ? true : false
+    return !!this.sp
   }
 
   // 初始化心跳检测器
@@ -238,9 +238,9 @@ const createWindow = () => {
   if (isDev) mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL!)
   else mainWindow.loadFile(path.join(indexHtmlPath, 'index.html'))
 
-  ipcMain.handle('readData', getData)
+  ipcMain.handle('get-device-data', getData)
   ipcMain.handle('connect-device', (_, deviceName) => getDeviceInfo(deviceName))
-  ipcMain.on('openPort', startRead)
+  ipcMain.on('start-monitoring', startRead)
   ipcMain.on('disconnect-device', stopRead)
   ipcMain.on('saveFile', saveToCSV)
 
