@@ -7,6 +7,7 @@ import ActionCard from "../components/ActionCard.tsx"
 import CenterAlert from "../components/CenterAlert.tsx"
 import DataAreaCard from "../components/DataAreaCard.tsx"
 import DeviceInfoCard from "../components/DeviceInfoCard.tsx"
+import SaveStatusCard from "../components/SaveStatusCard.tsx"
 
 function HomePage() {
   const myDeviceName = "FX2348N"
@@ -17,37 +18,46 @@ function HomePage() {
   const [showConnectErrorAlert, setShowConnectErrorAlert] = useState(false)
   const [showUnexpectDisconnectAlert, setUnexpectDisconnectAlert] = useState(false)
   const [showCacheAlreadyFulledAlert, setShowCacheAlreadyFulledAlert] = useState(false)
+  const [showSaveResult, setShowSaveResult] = useState(false)
+  const [saveResult, setSaveResult] = useState<boolean | undefined>(undefined)
+
 
   // 获取设备数据
   useEffect(() => {
     if (!isMonitoring || !deviceInfo?.status) return
-    const dataInterval = setInterval(() => {
-      handleGetDeviceData()
+    const dataInterval = setInterval(async () => {
+      await handleGetDeviceData()
     }, 100)
     return () => clearInterval(dataInterval)
   }, [isMonitoring, deviceInfo?.status])
 
   // 监听消息
-  window.ipcRenderer.once("responseMessage", (_, message) => {
-    switch (message) {
-      // 设备意外断开
-      case ResponseCode.DeviceDisconnected:
-        setUnexpectDisconnectAlert(true)
-        setDeviceInfo(undefined)
-        setIsMonitoring(false)
-        break
-      // 数据即将到达缓存上限
-      case ResponseCode.CacheAlmostFulled:
-        message.warning({content: "数据量即将达到缓存上限！（80%）", style: {marginTop: 30}})
-        break
-      // 数据缓存已满
-      case ResponseCode.CacheAlreadyFulled:
-        setShowCacheAlreadyFulledAlert(true)
-        setIsMonitoring(false)
-        setIsCacheFull(true)
-        break
-    }
-  })
+  useEffect(() => {
+    window.ipcRenderer.on("responseMessage", (_, message) => {
+      switch (message) {
+        // 设备意外断开
+        case ResponseCode.DeviceDisconnected:
+          setUnexpectDisconnectAlert(true)
+          setDeviceInfo(undefined)
+          setIsMonitoring(false)
+          break
+        // 数据缓存已满
+        case ResponseCode.CacheAlreadyFulled:
+          setShowCacheAlreadyFulledAlert(true)
+          setIsMonitoring(false)
+          setIsCacheFull(true)
+          break
+        case ResponseCode.SaveFileFinished:
+          setShowSaveResult(true)
+          setSaveResult(true)
+          break
+        case ResponseCode.SaveFileFailed:
+          setShowSaveResult(true)
+          setSaveResult(false)
+          break
+      }
+    })
+  }, [])
 
 
   return (
@@ -84,22 +94,30 @@ function HomePage() {
           </Col>
         </Row>
         {
-          deviceData ?
-            <Row gutter={[8, 8]} style={{marginTop: 8}}>
-              <Col span={12}>
-                <DataAreaCard title={"通道 1"} value={deviceData?.data1} />
-              </Col>
-              <Col span={12}>
-                <DataAreaCard title={"通道 2"} value={deviceData?.data2} />
-              </Col>
-              <Col span={12}>
-                <DataAreaCard title={"通道 3"} value={deviceData?.data3} />
-              </Col>
-              <Col span={12}>
-                <DataAreaCard title={"通道 4"} value={deviceData?.data4} />
-              </Col>
-            </Row> :
-            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={"暂无数据"} style={{marginTop: 200}} />
+          showSaveResult ?
+            <SaveStatusCard saveResult={saveResult!} onClose={() => {
+              setShowSaveResult(false)
+              setSaveResult(undefined)
+            }} /> :
+            <>
+              {deviceData ?
+                <Row gutter={[8, 8]} style={{marginTop: 8}}>
+                  <Col span={12}>
+                    <DataAreaCard title={"通道 1"} value={deviceData?.data1} />
+                  </Col>
+                  <Col span={12}>
+                    <DataAreaCard title={"通道 2"} value={deviceData?.data2} />
+                  </Col>
+                  <Col span={12}>
+                    <DataAreaCard title={"通道 3"} value={deviceData?.data3} />
+                  </Col>
+                  <Col span={12}>
+                    <DataAreaCard title={"通道 4"} value={deviceData?.data4} />
+                  </Col>
+                </Row> :
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={"暂无数据"} style={{marginTop: 200}} />
+              }
+            </>
         }
       </Flex>
     </>

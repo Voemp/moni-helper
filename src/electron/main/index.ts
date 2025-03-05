@@ -45,14 +45,14 @@ export class PortData {
     this.sign = true
   }
 
-  // 添加新的数据，保证长度不超过1000000
+  // 添加新的数据
   public add(data: number[]): number {
     const dataLength = this.getLength()
     if (dataLength >= this.maxSize) {
       // 数据量超过maxSize,弹出警告
       this.sign = true
       return 2
-    } else if ((dataLength >= this.maxSize - 1000) && (this.sign)) {
+    } else if ((dataLength >= this.maxSize * 0.8) && (this.sign)) {
       // 数据量即将超过maxSize,停止接受数据
       this.sign = false
       return 1
