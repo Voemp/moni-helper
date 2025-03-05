@@ -1,5 +1,5 @@
-import { DownloadOutlined, PlayCircleOutlined, StopOutlined } from '@ant-design/icons'
-import { Button, Card, ConfigProvider, Flex } from 'antd'
+import { DownloadOutlined, PlayCircleOutlined, StopOutlined } from "@ant-design/icons"
+import { Button, Card, ConfigProvider, Flex } from "antd"
 
 interface ActionCardProps {
   deviceStatus?: boolean
@@ -33,7 +33,7 @@ function ActionCard({
           <Button onClick={stopMonitoring} icon={<StopOutlined />} style={{width: '100%', height: '30%'}}
                   disabled={!deviceStatus || !isMonitoring}>停止监测</Button>
           <Button onClick={saveData} icon={<DownloadOutlined />} style={{width: '100%', height: '30%'}}
-                  disabled={!deviceStatus || isMonitoring || !hasGotData}>保存数据</Button>
+                  disabled={isMonitoring || !hasGotData}>保存数据</Button>
         </Flex>
       </Card>
     </ConfigProvider>

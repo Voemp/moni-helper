@@ -8,7 +8,7 @@ interface CenterAlertProps {
   onClose: () => void
 }
 
-function CenterAlert({visible = false, message, description, type, onClose}: CenterAlertProps) {
+function CenterAlert({visible, message, description, type, onClose}: CenterAlertProps) {
   if (!visible) return null
 
   return (
@@ -24,8 +24,7 @@ function CenterAlert({visible = false, message, description, type, onClose}: Cen
         description={description}
         type={type}
         closable
-        onClose={onClose}
-      />
+        afterClose={onClose} />
     </div>
   )
 }
