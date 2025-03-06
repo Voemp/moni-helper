@@ -150,7 +150,7 @@ export class Detector {
     this.sp?.removeAllListeners()
     this.sp?.close((err) => {
       if (err) {
-        mainWindow.webContents.send("responseMessage", ResponseCode.PortCloseFailed)
+        mainWindow?.webContents.send("responseMessage", ResponseCode.PortCloseFailed)
       }
     })
     // 清除端口与连接检测器
@@ -174,7 +174,7 @@ export class Detector {
     }
     this.sp?.open((err) => {
       if (err) {
-        mainWindow.webContents.send("responseMessage", ResponseCode.PortOpenFailed)
+        mainWindow?.webContents.send("responseMessage", ResponseCode.PortOpenFailed)
         return
       }
       // 创建数据流管道并开始读入数据
@@ -210,7 +210,7 @@ export class Detector {
       const psInfo = await SerialPort.list()
       const sign = psInfo.some(pInfo => pInfo.path === portPath)
       if (!sign) {
-        mainWindow.webContents.send("responseMessage", ResponseCode.DeviceDisconnected)
+        mainWindow?.webContents.send("responseMessage", ResponseCode.DeviceDisconnected)
         console.log("Device disconnected unexpectedly")
         this.initDeviceInfo()
         this.closeAndDeleteSP()
@@ -227,9 +227,23 @@ export class Detector {
   }
 }
 
+// 定义全局变量
 const portData = new PortData
 const detector = new Detector
-let mainWindow: BrowserWindow
+let mainWindow: BrowserWindow | null
+
+// 注册事件监听器
+ipcMain.handle("connect-device", (_, deviceName, cacheSize) => getDeviceInfo(deviceName, cacheSize))
+ipcMain.on("disconnect-device", disconnectDevice)
+
+ipcMain.handle("get-device-data", getData)
+ipcMain.on("start-monitoring", startRead)
+ipcMain.on("stop-monitoring", stopRead)
+
+ipcMain.on("save-data", saveToCSV)
+ipcMain.on("delete-data", clearCache)
+
+ipcMain.handle("get-version-code", app.getVersion)
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
@@ -257,18 +271,6 @@ const createWindow = () => {
   if (isDev) mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL!)
   else mainWindow.loadFile(path.join(indexHtmlPath, "index.html"))
 
-  ipcMain.handle("connect-device", (_, deviceName, cacheSize) => getDeviceInfo(deviceName, cacheSize))
-  ipcMain.on("disconnect-device", disconnectDevice)
-
-  ipcMain.handle("get-device-data", getData)
-  ipcMain.on("start-monitoring", startRead)
-  ipcMain.on("stop-monitoring", stopRead)
-
-  ipcMain.on("save-data", saveToCSV)
-  ipcMain.on("delete-data", clearCache)
-
-  ipcMain.handle("get-version-code", app.getVersion)
-
   mainWindow.once("ready-to-show", () => {
     mainWindow?.show()
   })
@@ -285,6 +287,7 @@ app.whenReady().then(async () => {
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit()
+  else mainWindow = null
 })
 
 // 获取串口信息, 若获得信息则初始化监听端口
@@ -306,7 +309,7 @@ async function getDeviceInfo(deviceName: string, cacheSize: number) {
     }
   } catch (error) {
     console.log(error)
-    mainWindow.webContents.send("responseMessage", ResponseCode.PortScanFailed)
+    mainWindow?.webContents.send("responseMessage", ResponseCode.PortScanFailed)
   }
 }
 
@@ -326,10 +329,10 @@ function makePipe(sp: SerialPort) {
     }
     const callback = portData.add(convertStringToArray(chunk.toString()))
     if (callback == 1) {
-      mainWindow.webContents.send("responseMessage", ResponseCode.CacheAlmostFulled)
+      mainWindow?.webContents.send("responseMessage", ResponseCode.CacheAlmostFulled)
       console.log("Data cache nearly full!!!!!")
     } else if (callback == 2) {
-      mainWindow.webContents.send("responseMessage", ResponseCode.CacheAlreadyFulled)
+      mainWindow?.webContents.send("responseMessage", ResponseCode.CacheAlreadyFulled)
       console.log("Data cache fulled, read stopped!!!!!!")
       stopRead()
     }
@@ -420,9 +423,9 @@ async function saveToCSV(): Promise<void> {
       // 监听文件流错误事件
       writeStream.on("error", () => reject())
     })
-    return mainWindow.webContents.send("responseMessage", ResponseCode.SaveFileFinished)
+    return mainWindow?.webContents.send("responseMessage", ResponseCode.SaveFileFinished)
   } catch {
-    return mainWindow.webContents.send("responseMessage", ResponseCode.SaveFileFailed)
+    return mainWindow?.webContents.send("responseMessage", ResponseCode.SaveFileFailed)
   }
 }
 
