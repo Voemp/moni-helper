@@ -1,5 +1,6 @@
 import { DelimiterParser } from "@serialport/parser-delimiter"
 import { app, BrowserWindow, dialog, ipcMain, nativeImage } from "electron"
+import { autoUpdater } from "electron-updater"
 import * as fs from "node:fs"
 import path from "node:path"
 import { SerialPort } from "serialport"
@@ -7,13 +8,13 @@ import { DeviceData } from "../../types/DeviceData"
 import { DeviceInfo } from "../../types/DeviceInfo"
 import { ResponseCode } from "../../types/ResponseCode"
 
-const isDev = process.env.NODE_ENV === 'development'
+const isDev = process.env.NODE_ENV === "development"
 
-const preloadPath = path.join(app.getAppPath(), 'dist/electron/preload/index.mjs')
-const indexHtmlPath = path.join(app.getAppPath(), 'dist/react')
+const preloadPath = path.join(app.getAppPath(), "dist/electron/preload/index.mjs")
+const indexHtmlPath = path.join(app.getAppPath(), "dist/react")
 const iconPath = isDev
-  ? path.resolve('src/electron/assets/app_icon.png')
-  : path.join(app.getAppPath(), 'dist/electron/assets/app_icon.png')
+  ? path.resolve("src/electron/assets/app_icon.png")
+  : path.join(app.getAppPath(), "dist/electron/assets/app_icon.png")
 const appIcon = nativeImage.createFromPath(iconPath)
 
 export interface PortsInfo {
@@ -33,14 +34,14 @@ export class PortData {
   private sign: boolean
 
   constructor() {
-    this.dataCache = { data1: [], data2: [], data3: [], data4: [] }
+    this.dataCache = {data1: [], data2: [], data3: [], data4: []}
     this.maxSize = 2000
     this.sign = true
   }
 
   // 初始化数据缓存
   public init() {
-    this.dataCache = { data1: [], data2: [], data3: [], data4: [] }
+    this.dataCache = {data1: [], data2: [], data3: [], data4: []}
     this.maxSize = 2000
     this.sign = true
   }
@@ -58,16 +59,16 @@ export class PortData {
       return 1
     }
     // 添加新数据到数组末尾
-    this.dataCache.data1.push(data[0]);
-    this.dataCache.data2.push(data[1]);
-    this.dataCache.data3.push(data[2]);
-    this.dataCache.data4.push(data[3]);
+    this.dataCache.data1.push(data[0])
+    this.dataCache.data2.push(data[1])
+    this.dataCache.data3.push(data[2])
+    this.dataCache.data4.push(data[3])
     return 0
   }
 
   // 获取当前数组的最后500条数据,不足500条在前方补0
   public getPromiseData() {
-    const dataToRenderer: DeviceData = { data1: [], data2: [], data3: [], data4: [] }
+    const dataToRenderer: DeviceData = {data1: [], data2: [], data3: [], data4: []}
     const lenOfSlice = this.getLength() >= 500 ? 500 : this.getLength()
     dataToRenderer.data1 = this.dataCache.data1.slice(-lenOfSlice)
     dataToRenderer.data2 = this.dataCache.data2.slice(-lenOfSlice)
@@ -84,7 +85,7 @@ export class PortData {
 
   // 获取当前缓存数据的长度
   public getLength(): number {
-    return this.dataCache.data1.length;
+    return this.dataCache.data1.length
   }
 
   // 获取当前缓存的全部数据
@@ -103,12 +104,12 @@ export class Detector {
     this.sp = null
     this.timerId = null
     this.isPause = false
-    this.dInfo = { name: '', port: '', status: false }
+    this.dInfo = {name: "", port: "", status: false}
   }
 
   // 重置设备信息
   public initDeviceInfo() {
-    this.dInfo = { name: '', port: '', status: false }
+    this.dInfo = {name: "", port: "", status: false}
   }
 
   // 设置设备信息
@@ -131,11 +132,11 @@ export class Detector {
   // 新建监听端口
   public initSP(portPath: string) {
     if (this.getSPInitStat()) {
-      console.log('SP alr Init')
+      console.log("SP alr Init")
       return
     }
     this.isPause = false
-    this.sp = new SerialPort({ path: portPath, baudRate: 115200, autoOpen: false })
+    this.sp = new SerialPort({path: portPath, baudRate: 115200, autoOpen: false})
     // 创建心跳检测器, 持续检测设备连接状态
     this.initTimer(this.dInfo.port)
   }
@@ -143,14 +144,14 @@ export class Detector {
   // 关闭并销毁监听端口
   public closeAndDeleteSP() {
     if (!this.getSPInitStat()) {
-      console.log('SP has not Init')
+      console.log("SP has not Init")
       return
     }
     // 关闭监听端口
     this.sp?.removeAllListeners()
     this.sp?.close((err) => {
       if (err) {
-        mainWindow.webContents.send('responseMessage', ResponseCode.PortCloseFailed)
+        mainWindow.webContents.send("responseMessage", ResponseCode.PortCloseFailed)
       }
     })
     // 清除端口与连接检测器
@@ -163,18 +164,18 @@ export class Detector {
   public openOrResumeSP() {
     // 防止重复打开端口
     if (this.sp?.isOpen) {
-      console.log('SP alr Open')
+      console.log("SP alr Open")
       if (this.isPause) {
-        console.log('SP is Resume')
+        console.log("SP is Resume")
         this.isPause = false
       } else {
-        console.log('SP has not Paused')
+        console.log("SP has not Paused")
       }
       return
     }
     this.sp?.open((err) => {
       if (err) {
-        mainWindow.webContents.send('responseMessage', ResponseCode.PortOpenFailed)
+        mainWindow.webContents.send("responseMessage", ResponseCode.PortOpenFailed)
         return
       }
       // 创建数据流管道并开始读入数据
@@ -186,9 +187,9 @@ export class Detector {
   public pauseSP() {
     if (this.sp?.isOpen) {
       if (this.isPause) {
-        console.log('SP alr Paused')
+        console.log("SP alr Paused")
       } else {
-        console.log('SP is Pause')
+        console.log("SP is Pause")
         this.isPause = true
       }
     }
@@ -210,12 +211,12 @@ export class Detector {
       const psInfo = await SerialPort.list()
       const sign = psInfo.some(pInfo => pInfo.path === portPath)
       if (!sign) {
-        mainWindow.webContents.send('responseMessage', ResponseCode.DeviceDisconnected)
-        console.log('Device disconnected unexpectedly')
+        mainWindow.webContents.send("responseMessage", ResponseCode.DeviceDisconnected)
+        console.log("Device disconnected unexpectedly")
         this.initDeviceInfo()
         this.closeAndDeleteSP()
       } else {
-        console.log('Device connecting')
+        console.log("Device connecting")
       }
     }, 1000)
   }
@@ -233,7 +234,7 @@ let mainWindow: BrowserWindow
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
-    title: 'MoniHelper',
+    title: "MoniHelper",
     icon: appIcon,
     width: 900,
     height: 700,
@@ -244,44 +245,46 @@ const createWindow = () => {
       preload: preloadPath,
     },
     // remove the default titleBar
-    titleBarStyle: 'hidden',
+    titleBarStyle: "hidden",
     // expose window controls in Windows/Linux
-    ...(process.platform !== 'darwin' ? {
+    ...(process.platform !== "darwin" ? {
       titleBarOverlay: {
-        color: '#FFFFFF',
+        color: "#FFFFFF",
         height: 20
       }
     } : {}),
   })
 
   if (isDev) mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL!)
-  else mainWindow.loadFile(path.join(indexHtmlPath, 'index.html'))
+  else mainWindow.loadFile(path.join(indexHtmlPath, "index.html"))
 
-  ipcMain.handle('connect-device', (_, deviceName) => getDeviceInfo(deviceName))
-  ipcMain.on('disconnect-device', disconnectDevice)
+  ipcMain.handle("connect-device", (_, deviceName) => getDeviceInfo(deviceName))
+  ipcMain.on("disconnect-device", disconnectDevice)
 
-  ipcMain.handle('get-device-data', getData)
-  ipcMain.on('start-monitoring', startRead)
+  ipcMain.handle("get-device-data", getData)
+  ipcMain.on("start-monitoring", startRead)
   ipcMain.on("stop-monitoring", stopRead)
 
   ipcMain.on("save-data", saveToCSV)
   ipcMain.on("delete-data", clearCache)
 
-  mainWindow.once('ready-to-show', () => {
+  mainWindow.once("ready-to-show", () => {
     mainWindow?.show()
   })
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   createWindow()
 
-  app.on('activate', () => {
+  await autoUpdater.checkForUpdatesAndNotify()
+
+  app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit()
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit()
 })
 
 // 获取串口信息, 若获得信息则初始化监听端口
@@ -290,11 +293,11 @@ async function getDeviceInfo(deviceName: string) {
     const portsInfo = await SerialPort.list()
     const portPath = getPath(deviceName, portsInfo)
     if (portPath.length == 0) {
-      console.log('name: ', detector.getDeviceInfo().name, 'port: ', detector.getDeviceInfo().port)
+      console.log("name: ", detector.getDeviceInfo().name, "port: ", detector.getDeviceInfo().port)
       return detector.getDeviceInfo()
     } else {
-      detector.setDeviceInfo({ name: deviceName, port: portPath, status: true })
-      console.log('name: ', detector.getDeviceInfo().name, 'port: ', detector.getDeviceInfo().port)
+      detector.setDeviceInfo({name: deviceName, port: portPath, status: true})
+      console.log("name: ", detector.getDeviceInfo().name, "port: ", detector.getDeviceInfo().port)
       // 创建监听端口并清空数据缓存
       detector.initSP(detector.getDeviceInfo().port)
       clearCache()
@@ -302,7 +305,7 @@ async function getDeviceInfo(deviceName: string) {
     }
   } catch (error) {
     console.log(error)
-    mainWindow.webContents.send('responseMessage', ResponseCode.PortScanFailed)
+    mainWindow.webContents.send("responseMessage", ResponseCode.PortScanFailed)
   }
 }
 
@@ -313,19 +316,19 @@ async function getData() {
 
 // 为已创建的端口绑定管道
 function makePipe(sp: SerialPort) {
-  const parser = sp.pipe(new DelimiterParser({ delimiter: '\n' }))
-  parser.on('data', (chunk: Buffer) => {
+  const parser = sp.pipe(new DelimiterParser({delimiter: "\n"}))
+  parser.on("data", (chunk: Buffer) => {
     // 若当前端口为暂停状态, 放弃当前Buffer内的数据
     if (detector.getSPPauseStat()) {
-      chunk.fill('')
+      chunk.fill("")
       return
     }
     const callback = portData.add(convertStringToArray(chunk.toString()))
     if (callback == 1) {
-      mainWindow.webContents.send('responseMessage', ResponseCode.CacheAlmostFulled)
+      mainWindow.webContents.send("responseMessage", ResponseCode.CacheAlmostFulled)
       console.log("Data cache nearly full!!!!!")
     } else if (callback == 2) {
-      mainWindow.webContents.send('responseMessage', ResponseCode.CacheAlreadyFulled)
+      mainWindow.webContents.send("responseMessage", ResponseCode.CacheAlreadyFulled)
       console.log("Data cache fulled, read stopped!!!!!!")
       stopRead()
     }
@@ -336,7 +339,7 @@ function makePipe(sp: SerialPort) {
 function startRead() {
   // 防止串口未初始化
   if (!detector.getSPInitStat()) {
-    console.log('SP has not init')
+    console.log("SP has not init")
     return
   }
   // 创建或继续监听端口
@@ -347,7 +350,7 @@ function startRead() {
 function stopRead() {
   // 防止串口未初始化
   if (!detector.getSPInitStat()) {
-    console.log('SP has not init')
+    console.log("SP has not init")
     return
   }
   // 暂停监听窗口
@@ -367,18 +370,18 @@ function clearCache() {
 }
 
 function convertStringToArray(input: string): number[] {
-  return input.split(',').map(item => Number(item));
+  return input.split(",").map(item => Number(item))
 }
 
 function getPath(deviceName: string, portsInfo: PortsInfo[]) {
   if (portsInfo.length == 0) {
-    return ''
+    return ""
   }
   for (const pInfo of portsInfo) {
     if (pInfo.serialNumber == deviceName)
       return pInfo.path
   }
-  return ''
+  return ""
 }
 
 // 将缓存数据保存至CSV文件
@@ -387,8 +390,8 @@ async function saveToCSV(): Promise<void> {
   stopRead()
   // 弹出窗口等待用户指定保存位置
   const savePath = await showSaveDialog()
-  console.log('path to save:', savePath)
-  console.log('length of cache:', portData.getLength())
+  console.log("path to save:", savePath)
+  console.log("length of cache:", portData.getLength())
   try {
     await new Promise<void>((resolve, reject) => {
       // 若用户取消保存, 直接返回
@@ -398,7 +401,7 @@ async function saveToCSV(): Promise<void> {
       // 获取当前的缓存数据
       const dataCache = portData.getAllData()
       // 写入CSV的标题行
-      writeStream.write('data1,data2,data3,data4\n')
+      writeStream.write("data1,data2,data3,data4\n")
       // 异步逐行写入数据
       for (let i = 0; i < portData.getLength(); i++) {
         const row = [
@@ -407,18 +410,18 @@ async function saveToCSV(): Promise<void> {
           dataCache.data3[i],
           dataCache.data4[i]
         ]
-        writeStream.write(`${row.join(',')}\n`)
+        writeStream.write(`${row.join(",")}\n`)
       }
       // 完成写入后，关闭流
       writeStream.end()
       // 监听文件流完成事件
-      writeStream.on('finish', () => resolve())
+      writeStream.on("finish", () => resolve())
       // 监听文件流错误事件
-      writeStream.on('error', () => reject())
+      writeStream.on("error", () => reject())
     })
-    return mainWindow.webContents.send('responseMessage', ResponseCode.SaveFileFinished)
+    return mainWindow.webContents.send("responseMessage", ResponseCode.SaveFileFinished)
   } catch {
-    return mainWindow.webContents.send('responseMessage', ResponseCode.SaveFileFailed)
+    return mainWindow.webContents.send("responseMessage", ResponseCode.SaveFileFailed)
   }
 }
 
@@ -426,10 +429,10 @@ async function saveToCSV(): Promise<void> {
 async function showSaveDialog(): Promise<string> {
   const savePath = await dialog.showSaveDialog({
     filters: [
-      { name: 'CSV Files', extensions: ['csv'] },
-      { name: 'TXT Files', extensions: ['txt'] }],
-    properties: ['showHiddenFiles', 'createDirectory'],
-    defaultPath: 'saveData.csv'
+      {name: "CSV Files", extensions: ["csv"]},
+      {name: "TXT Files", extensions: ["txt"]}],
+    properties: ["showHiddenFiles", "createDirectory"],
+    defaultPath: "saveData.csv"
   })
   return savePath.filePath
 }

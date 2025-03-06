@@ -1,0 +1,51 @@
+name: CI Build
+
+on:
+  push:
+    tags:
+      - v*.*.*
+
+jobs:
+  build_app:
+    name: Build App
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: 📦 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: 📂 Install Dependencies
+        run: |
+          npm ci
+          python -m pip install --upgrade setuptools
+
+      - name: 🔧 Build Electron App
+        run: npm run build
+
+      - name: 📤 Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: |
+            build/*.exe
+            build/*.dmg
+            build/*.zip
+            build/*.AppImage
+            build/*.snap
+            build/*.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}

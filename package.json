@@ -1,7 +1,7 @@
 {
   "name": "moni-helper",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.9.0",
   "main": "dist/electron/main/index.js",
   "license": "MIT",
   "author": "Voemp && Yuyuko9961",
@@ -27,6 +27,7 @@
     "antd": "^5.24.2",
     "electron": "^34.3.0",
     "electron-builder": "^25.1.8",
+    "electron-updater": "^6.3.9",
     "eslint": "^9.21.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",

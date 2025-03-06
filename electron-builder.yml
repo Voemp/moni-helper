@@ -39,5 +39,6 @@ linux:
 appImage:
   artifactName: ${productName}_${version}_${os}_${arch}.${ext}
 publish:
-  provider: generic
-  url:
+  provider: github
+  owner: Voemp
+  repo: moni-helper
