@@ -12,7 +12,7 @@ dist
 node_modules
 *.local
 test/*
-saveData.csv
+package-lock.json
 
 # Editor directories and files
 .vscode/*
