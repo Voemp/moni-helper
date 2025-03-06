@@ -1,19 +1,12 @@
 import { DelimiterParser } from "@serialport/parser-delimiter"
 import { app, BrowserWindow, dialog, ipcMain, nativeImage } from "electron"
+import { autoUpdater } from "electron-updater"
 import * as fs from "node:fs"
 import path from "node:path"
 import { SerialPort } from "serialport"
-import { updateElectronApp, UpdateSourceType } from 'update-electron-app'
 import { DeviceData } from "../../types/DeviceData"
 import { DeviceInfo } from "../../types/DeviceInfo"
 import { ResponseCode } from "../../types/ResponseCode"
-
-updateElectronApp({
-  updateSource: {
-    type: UpdateSourceType.ElectronPublicUpdateService,
-    repo: "Voemp/moni-helper"
-  }
-})
 
 const isDev = process.env.NODE_ENV === "development"
 
@@ -286,6 +279,9 @@ const createWindow = () => {
 
 app.whenReady().then(() => {
   createWindow()
+
+  autoUpdater.checkForUpdatesAndNotify()
+
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
