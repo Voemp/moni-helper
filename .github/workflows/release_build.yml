@@ -49,5 +49,3 @@ jobs:
             build/*.AppImage
             build/*.snap
             build/*.deb
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
