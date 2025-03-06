@@ -5,8 +5,6 @@ on:
     branches: [ master ]
     tags:
       - v*.*.*
-      - v*.*.*-alpha*
-      - v*.*.*-beta*
 
 jobs:
   build_app:
@@ -52,4 +50,4 @@ jobs:
             build/*.snap
             build/*.deb
         env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

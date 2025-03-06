@@ -124,7 +124,7 @@ function HomePage() {
   )
 
   async function handleConnectDevice() {
-    await window.ipcRenderer.invoke("connect-device", myDeviceName).then(r => {
+    await window.ipcRenderer.invoke("connect-device", myDeviceName, 2000).then(r => {
       if (r.status) {
         setDeviceInfo({
           name: r.name,
