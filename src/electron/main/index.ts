@@ -41,14 +41,14 @@ export class PortData {
   private sign: boolean
 
   constructor() {
-    this.dataCache = {data1: [], data2: [], data3: [], data4: []}
+    this.dataCache = { data1: [], data2: [], data3: [], data4: [] }
     this.maxSize = 2000
     this.sign = true
   }
 
   // 初始化数据缓存
   public initData() {
-    this.dataCache = {data1: [], data2: [], data3: [], data4: []}
+    this.dataCache = { data1: [], data2: [], data3: [], data4: [] }
     this.sign = true
   }
 
@@ -79,7 +79,7 @@ export class PortData {
 
   // 获取当前数组的最后500条数据,不足500条在前方补0
   public getPromiseData() {
-    const dataToRenderer: DeviceData = {data1: [], data2: [], data3: [], data4: []}
+    const dataToRenderer: DeviceData = { data1: [], data2: [], data3: [], data4: [] }
     const lenOfSlice = this.getLength() >= 500 ? 500 : this.getLength()
     dataToRenderer.data1 = this.dataCache.data1.slice(-lenOfSlice)
     dataToRenderer.data2 = this.dataCache.data2.slice(-lenOfSlice)
@@ -115,12 +115,12 @@ export class Detector {
     this.sp = null
     this.timerId = null
     this.isPause = false
-    this.dInfo = {name: "", port: "", status: false}
+    this.dInfo = { name: "", port: "", status: false }
   }
 
   // 重置设备信息
   public initDeviceInfo() {
-    this.dInfo = {name: "", port: "", status: false}
+    this.dInfo = { name: "", port: "", status: false }
   }
 
   // 设置设备信息
@@ -147,7 +147,7 @@ export class Detector {
       return
     }
     this.isPause = false
-    this.sp = new SerialPort({path: portPath, baudRate: 115200, autoOpen: false})
+    this.sp = new SerialPort({ path: portPath, baudRate: 115200, autoOpen: false })
     // 创建心跳检测器, 持续检测设备连接状态
     this.initTimer(this.dInfo.port)
   }
@@ -284,9 +284,8 @@ const createWindow = () => {
   })
 }
 
-app.whenReady().then(async () => {
+app.whenReady().then(() => {
   createWindow()
-
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
@@ -305,7 +304,7 @@ async function getDeviceInfo(deviceName: string, cacheSize: number) {
       console.log("name: ", detector.getDeviceInfo().name, "port: ", detector.getDeviceInfo().port)
       return detector.getDeviceInfo()
     } else {
-      detector.setDeviceInfo({name: deviceName, port: portPath, status: true})
+      detector.setDeviceInfo({ name: deviceName, port: portPath, status: true })
       console.log("name: ", detector.getDeviceInfo().name, "port: ", detector.getDeviceInfo().port)
       // 初始化数据缓存并创建监听端口
       portData.initData()
@@ -326,7 +325,7 @@ async function getData() {
 
 // 为已创建的端口绑定管道
 function makePipe(sp: SerialPort) {
-  const parser = sp.pipe(new DelimiterParser({delimiter: "\n"}))
+  const parser = sp.pipe(new DelimiterParser({ delimiter: "\n" }))
   parser.on("data", (chunk: Buffer) => {
     // 若当前端口为暂停状态, 放弃当前Buffer内的数据
     if (detector.getSPPauseStat()) {
@@ -439,10 +438,10 @@ async function saveToCSV(): Promise<void> {
 async function showSaveDialog(): Promise<string> {
   const savePath = await dialog.showSaveDialog({
     filters: [
-      {name: "CSV Files", extensions: ["csv"]},
-      {name: "TXT Files", extensions: ["txt"]}],
+      { name: "CSV Files", extensions: ["csv"] },
+      { name: "TXT Files", extensions: ["txt"] }],
     properties: ["showHiddenFiles", "createDirectory"],
-    defaultPath: "saveData.csv"
+    defaultPath: "data.csv"
   })
   return savePath.filePath
 }
