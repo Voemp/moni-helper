@@ -12,7 +12,6 @@ dist
 node_modules
 *.local
 test/*
-package-lock.json
 
 # Editor directories and files
 .vscode/*
