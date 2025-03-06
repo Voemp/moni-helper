@@ -1,19 +1,11 @@
 import path from "node:path"
 import * as fs from "node:fs"
 import { app, BrowserWindow, dialog, ipcMain, nativeImage } from "electron"
-import { updateElectronApp, UpdateSourceType } from "update-electron-app"
 import { SerialPort } from "serialport"
 import { DelimiterParser } from "@serialport/parser-delimiter"
 import { DeviceData } from "../../types/DeviceData"
 import { DeviceInfo } from "../../types/DeviceInfo"
 import { ResponseCode } from "../../types/ResponseCode"
-
-updateElectronApp({
-  updateSource: {
-    type: UpdateSourceType.ElectronPublicUpdateService,
-    repo: "Voemp/moni-helper"
-  }
-})
 
 const isDev = process.env.NODE_ENV === "development"
 
