@@ -34,7 +34,3 @@ linux:
     - deb
   maintainer: voemp.top
   category: Utility
-publish:
-  provider: github
-  owner: Voemp
-  repo: moni-helper
