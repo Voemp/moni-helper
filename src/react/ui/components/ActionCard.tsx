@@ -46,7 +46,7 @@ function ActionCard({
                       type="primary" disabled={!deviceStatus || isMonitoring}>清空数据</Button>
             </Popconfirm>
           }
-          {(isMonitoring || !hasGotData) ?
+          {(isMonitoring || !hasGotData || isCacheFull) ?
             <Button onClick={stopMonitoring} icon={<StopOutlined />} style={{width: "100%", height: "30%"}}
                     disabled={!deviceStatus || !isMonitoring}>停止监测</Button> :
             <Popconfirm
