@@ -1,9 +1,9 @@
-import { DelimiterParser } from "@serialport/parser-delimiter"
+import path from "node:path"
+import * as fs from "node:fs"
 import { app, BrowserWindow, dialog, ipcMain, nativeImage } from "electron"
 import { autoUpdater } from "electron-updater"
-import * as fs from "node:fs"
-import path from "node:path"
 import { SerialPort } from "serialport"
+import { DelimiterParser } from "@serialport/parser-delimiter"
 import { DeviceData } from "../../types/DeviceData"
 import { DeviceInfo } from "../../types/DeviceInfo"
 import { ResponseCode } from "../../types/ResponseCode"
@@ -40,10 +40,14 @@ export class PortData {
   }
 
   // 初始化数据缓存
-  public init() {
+  public initData() {
     this.dataCache = {data1: [], data2: [], data3: [], data4: []}
-    this.maxSize = 2000
     this.sign = true
+  }
+
+  // 设置数据缓存容量
+  public setCacheSize(cacheSize: number) {
+    this.maxSize = cacheSize
   }
 
   // 添加新的数据
@@ -258,7 +262,7 @@ const createWindow = () => {
   if (isDev) mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL!)
   else mainWindow.loadFile(path.join(indexHtmlPath, "index.html"))
 
-  ipcMain.handle("connect-device", (_, deviceName) => getDeviceInfo(deviceName))
+  ipcMain.handle("connect-device", (_, deviceName, cacheSize) => getDeviceInfo(deviceName, cacheSize))
   ipcMain.on("disconnect-device", disconnectDevice)
 
   ipcMain.handle("get-device-data", getData)
@@ -288,7 +292,7 @@ app.on("window-all-closed", () => {
 })
 
 // 获取串口信息, 若获得信息则初始化监听端口
-async function getDeviceInfo(deviceName: string) {
+async function getDeviceInfo(deviceName: string, cacheSize: number) {
   try {
     const portsInfo = await SerialPort.list()
     const portPath = getPath(deviceName, portsInfo)
@@ -298,9 +302,10 @@ async function getDeviceInfo(deviceName: string) {
     } else {
       detector.setDeviceInfo({name: deviceName, port: portPath, status: true})
       console.log("name: ", detector.getDeviceInfo().name, "port: ", detector.getDeviceInfo().port)
-      // 创建监听端口并清空数据缓存
+      // 初始化数据缓存并创建监听端口
+      portData.initData()
+      portData.setCacheSize(cacheSize)
       detector.initSP(detector.getDeviceInfo().port)
-      clearCache()
       return detector.getDeviceInfo()
     }
   } catch (error) {
@@ -366,7 +371,7 @@ function disconnectDevice() {
 
 // 清空缓存数据
 function clearCache() {
-  portData.init()
+  portData.initData()
 }
 
 function convertStringToArray(input: string): number[] {
