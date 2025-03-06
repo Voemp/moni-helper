@@ -128,11 +128,6 @@ export class Detector {
     return this.dInfo
   }
 
-  // 获取连接状态
-  public getConnectState(): boolean {
-    return this.dInfo.port.length != 0
-  }
-
   // 新建监听端口
   public initSP(portPath: string) {
     if (this.getSPInitStat()) {
@@ -272,15 +267,16 @@ const createWindow = () => {
   ipcMain.on("save-data", saveToCSV)
   ipcMain.on("delete-data", clearCache)
 
+  ipcMain.handle("get-version-code", app.getVersion)
+
   mainWindow.once("ready-to-show", () => {
     mainWindow?.show()
   })
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   createWindow()
-
-  autoUpdater.checkForUpdatesAndNotify()
+  await autoUpdater.checkForUpdatesAndNotify()
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
