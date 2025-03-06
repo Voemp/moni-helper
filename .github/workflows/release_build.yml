@@ -39,6 +39,7 @@ jobs:
       - name: 📤 Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          name: ${{ github.ref_name }}
           draft: true
           files: |
             build/*.exe
