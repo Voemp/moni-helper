@@ -9,7 +9,7 @@
   "type": "module",
   "scripts": {
     "dev": "chcp 65001 && vite",
-    "build": "tsc -b && vite build && electron-builder",
+    "build": "tsc -b && vite build && electron-builder --publish never",
     "lint": "eslint .",
     "preview": "vite preview"
   },
