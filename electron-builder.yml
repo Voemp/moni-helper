@@ -38,4 +38,3 @@ linux:
   category: Utility
 appImage:
   artifactName: ${productName}_${version}_${os}_${arch}.${ext}
-publish: never
