@@ -6,29 +6,27 @@ directories:
 files:
   - dist
 win:
+  artifactName: ${productName}_${version}_${os}_${arch}.${ext}
   icon: dist/electron/assets/app_icon_win.ico
   target:
     - target: nsis
       arch:
         - x64
 nsis:
-  artifactName: ${productName}_${version}_${os}_${arch}.${ext}
-  shortcutName: ${productName}
-  uninstallDisplayName: ${productName}
   oneClick: false
   perMachine: true
   allowToChangeInstallationDirectory: true
   deleteAppDataOnUninstall: true
 mac:
+  artifactName: ${productName}_${version}_${os}_${arch}.${ext}
   icon: dist/electron/assets/app_icon_macos.png
   target:
     - dmg
   extendInfo:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
-dmg:
-  artifactName: ${productName}_${version}_${os}_${arch}.${ext}
 linux:
+  artifactName: ${productName}_${version}_${os}_${arch}.${ext}
   icon: dist/electron/assets/app_icon.png
   target:
     - AppImage
@@ -36,5 +34,7 @@ linux:
     - deb
   maintainer: voemp.top
   category: Utility
-appImage:
-  artifactName: ${productName}_${version}_${os}_${arch}.${ext}
+publish:
+  provider: github
+  owner: Voemp
+  repo: moni-helper

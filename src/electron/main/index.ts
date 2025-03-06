@@ -1,8 +1,9 @@
-import path from "node:path"
-import * as fs from "node:fs"
-import { app, BrowserWindow, dialog, ipcMain, nativeImage } from "electron"
-import { SerialPort } from "serialport"
 import { DelimiterParser } from "@serialport/parser-delimiter"
+import { app, BrowserWindow, dialog, ipcMain, nativeImage } from "electron"
+import { autoUpdater } from 'electron-updater'
+import * as fs from "node:fs"
+import path from "node:path"
+import { SerialPort } from "serialport"
 import { DeviceData } from "../../types/DeviceData"
 import { DeviceInfo } from "../../types/DeviceInfo"
 import { ResponseCode } from "../../types/ResponseCode"
@@ -276,12 +277,14 @@ const createWindow = () => {
   })
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   createWindow()
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+
+  await autoUpdater.checkForUpdatesAndNotify()
 })
 
 app.on("window-all-closed", () => {
