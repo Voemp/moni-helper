@@ -206,7 +206,7 @@ export class Detector {
   // 初始化心跳检测器
   public initTimer(portPath: string) {
     this.timerId = setInterval(async () => {
-      const psInfo = await SerialPort.list()
+      const psInfo: PortsInfo[] = await SerialPort.list()
       const sign = psInfo.some(pInfo => pInfo.path === portPath)
       if (!sign) {
         mainWindow?.webContents.send("responseMessage", ResponseCode.DeviceDisconnected)
@@ -242,8 +242,7 @@ ipcMain.on("window-maximize", () => {
 })
 ipcMain.on("window-close", () => mainWindow?.close())
 
-
-ipcMain.handle("", getPortsInfo)
+ipcMain.handle("", getPortsName)
 ipcMain.on("", (_, dataSize) => setDisplayedData(dataSize))
 
 ipcMain.handle("connect-device", (_, deviceName, cacheSize) => getDeviceInfo(deviceName, cacheSize))
@@ -302,8 +301,13 @@ app.on("window-all-closed", () => {
 })
 
 // 获取已连接的全部端口信息
-async function getPortsInfo() {
-  return await SerialPort.list()
+async function getPortsName(): Promise<string[]> {
+  const portsName: string[] = []
+  const psInfo: PortsInfo[] = await SerialPort.list()
+  for (const pInfo of psInfo) {
+    portsName.push(pInfo.serialNumber)
+  }
+  return portsName
 }
 
 // 初始化端口并检测数据
