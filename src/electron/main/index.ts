@@ -129,15 +129,16 @@ export class Detector {
   }
 
   // 新建监听端口
-  public initSP(portPath: string) {
+  public initSP(portPath: string): SerialPort {
     if (this.getSPInitStat()) {
       console.log("SP alr Init")
-      return
+      return this.sp as SerialPort
     }
     this.isPause = false
     this.sp = new SerialPort({ path: portPath, baudRate: 115200, autoOpen: false })
     // 创建心跳检测器, 持续检测设备连接状态
-    this.initTimer(this.dInfo.port)
+    this.initTimer(portPath)
+    return this.sp
   }
 
   // 关闭并销毁监听端口
@@ -147,12 +148,14 @@ export class Detector {
       return
     }
     // 关闭监听端口
-    this.sp?.removeAllListeners()
-    this.sp?.close((err) => {
-      if (err) {
-        mainWindow?.webContents.send("responseMessage", ResponseCode.PortCloseFailed)
-      }
-    })
+    if (this.sp?.isOpen) {
+      this.sp?.removeAllListeners()
+      this.sp?.close((err) => {
+        if (err) {
+          mainWindow?.webContents.send("responseMessage", ResponseCode.PortCloseFailed)
+        }
+      })
+    }
     // 清除端口与连接检测器
     this.sp = null
     this.isPause = false
@@ -160,26 +163,15 @@ export class Detector {
   }
 
   // 打开监听端口, 若被暂停则恢复
-  public openOrResumeSP() {
-    // 防止重复打开端口
+  public resumeSP() {
     if (this.sp?.isOpen) {
-      console.log("SP alr Open")
       if (this.isPause) {
         console.log("SP is Resume")
         this.isPause = false
       } else {
         console.log("SP has not Paused")
       }
-      return
     }
-    this.sp?.open((err) => {
-      if (err) {
-        mainWindow?.webContents.send("responseMessage", ResponseCode.PortOpenFailed)
-        return
-      }
-      // 创建数据流管道并开始读入数据
-      makePipe(this.sp as SerialPort)
-    })
   }
 
   // 暂停监听端口
@@ -233,6 +225,9 @@ const detector = new Detector
 let mainWindow: BrowserWindow | null
 
 // 注册事件监听器
+ipcMain.handle("get-version-code", app.getVersion)
+ipcMain.handle("", getPortsInfo)
+
 ipcMain.handle("connect-device", (_, deviceName, cacheSize) => getDeviceInfo(deviceName, cacheSize))
 ipcMain.on("disconnect-device", disconnectDevice)
 
@@ -242,8 +237,6 @@ ipcMain.on("stop-monitoring", stopRead)
 
 ipcMain.on("save-data", saveToCSV)
 ipcMain.on("delete-data", clearCache)
-
-ipcMain.handle("get-version-code", app.getVersion)
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
@@ -290,21 +283,74 @@ app.on("window-all-closed", () => {
   else mainWindow = null
 })
 
+// 获取已连接的全部端口信息
+async function getPortsInfo() {
+  return await SerialPort.list()
+}
+
+// 初始化端口并检测数据
+async function initAndDataCheck(portPath: string): Promise<boolean> {
+  const testSP = detector.initSP(portPath)
+  await new Promise<void>((resolve, reject) => {
+    testSP.open((err) => {
+      if (err) {
+        mainWindow?.webContents.send('responseMessage', ResponseCode.PortOpenFailed)
+        reject(err)
+      } else {
+        resolve()
+      }
+    })
+  })
+  const result = await dataCheck(testSP)
+  if (result) {
+    // 创建数据流管道并开始读入数据
+    makePipe(testSP)
+    detector.pauseSP()
+  } else detector.closeAndDeleteSP()
+  return result
+}
+
+// 尝试读取一组数据, 检测该设备的输出能否正确匹配本程序
+async function dataCheck(testSP: SerialPort): Promise<boolean> {
+  let result: boolean = false
+  let testData: string
+  let testBuffer: Buffer
+  try {
+    await new Promise<void>((resolve) => {
+      testSP.on('readable', () => {
+        testBuffer = testSP.read(17)
+        if (testBuffer) {
+          testData = testBuffer.toString()
+          console.log('test data:', testData)
+          result = (testData.indexOf(',') == 3) && (testData.indexOf('\n') == 16) && (testData.indexOf('n') == -1)
+          console.log('test result:', result)
+          testSP.removeAllListeners()
+          resolve()
+        }
+      })
+    })
+    return result
+  } catch {
+    return false
+  }
+}
+
+
 // 获取串口信息, 若获得信息则初始化监听端口
 async function getDeviceInfo(deviceName: string, cacheSize: number) {
   try {
     const portsInfo = await SerialPort.list()
     const portPath = getPath(deviceName, portsInfo)
-    if (portPath.length == 0) {
-      console.log("name: ", detector.getDeviceInfo().name, "port: ", detector.getDeviceInfo().port)
+    // 先检测是否有设备连接, 若有连接则进行初始化和数据检查
+    if ((portPath.length == 0) || (! await initAndDataCheck(portPath))) {
+      console.log("name:", detector.getDeviceInfo().name, "port:", detector.getDeviceInfo().port)
       return detector.getDeviceInfo()
     } else {
       detector.setDeviceInfo({ name: deviceName, port: portPath, status: true })
-      console.log("name: ", detector.getDeviceInfo().name, "port: ", detector.getDeviceInfo().port)
-      // 初始化数据缓存并创建监听端口
+      console.log("name:", detector.getDeviceInfo().name, "port:", detector.getDeviceInfo().port)
+      // 初始化数据缓存
       portData.initData()
       portData.setCacheSize(cacheSize)
-      detector.initSP(detector.getDeviceInfo().port)
       return detector.getDeviceInfo()
     }
   } catch (error) {
@@ -346,11 +392,11 @@ function startRead() {
     console.log("SP has not init")
     return
   }
-  // 创建或继续监听端口
-  detector.openOrResumeSP()
+  // 继续监听端口
+  detector.resumeSP()
 }
 
-// 停止串口读取数据
+// 停止读取数据
 function stopRead() {
   // 防止串口未初始化
   if (!detector.getSPInitStat()) {
