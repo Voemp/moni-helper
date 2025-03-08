@@ -242,8 +242,8 @@ ipcMain.on("window-maximize", () => {
 })
 ipcMain.on("window-close", () => mainWindow?.close())
 
-ipcMain.handle("", getPortsName)
-ipcMain.on("", (_, dataSize) => setDisplayedData(dataSize))
+ipcMain.handle("get-device-list", getPortsName)
+ipcMain.on("set-data-accuracy", (_, dataSize) => setDisplayedData(dataSize))
 
 ipcMain.handle("connect-device", (_, deviceName, cacheSize) => getDeviceInfo(deviceName, cacheSize))
 ipcMain.on("disconnect-device", disconnectDevice)
@@ -305,7 +305,7 @@ async function getPortsName(): Promise<string[]> {
   const portsName: string[] = []
   const psInfo: PortsInfo[] = await SerialPort.list()
   for (const pInfo of psInfo) {
-    portsName.push(pInfo.serialNumber)
+    if (pInfo.serialNumber !== undefined) portsName.push(pInfo.serialNumber)
   }
   return portsName
 }

@@ -1,5 +1,6 @@
 /**
  * 响应码
+ * @enum {number}
  */
 export enum ResponseCode {
   PortOpened,
