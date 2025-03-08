@@ -30,11 +30,13 @@ export interface PortsInfo {
 
 export class PortData {
   private dataCache: DeviceData
+  private displayedData: number
   private maxSize: number
   private sign: boolean
 
   constructor() {
     this.dataCache = { data1: [], data2: [], data3: [], data4: [] }
+    this.displayedData = 500
     this.maxSize = 2000
     this.sign = true
   }
@@ -43,6 +45,11 @@ export class PortData {
   public initData() {
     this.dataCache = { data1: [], data2: [], data3: [], data4: [] }
     this.sign = true
+  }
+
+  // 设置每次传输给前端的数据量
+  public setDispData(dataSize: number) {
+    this.displayedData = dataSize
   }
 
   // 设置数据缓存容量
@@ -54,11 +61,11 @@ export class PortData {
   public add(data: number[]): number {
     const dataLength = this.getLength()
     if (dataLength >= this.maxSize) {
-      // 数据量超过maxSize,弹出警告
+      // 数据量超过 maxSize, 弹出警告
       this.sign = true
       return 2
     } else if ((dataLength >= this.maxSize * 0.8) && (this.sign)) {
-      // 数据量即将超过maxSize,停止接受数据
+      // 数据量即将超过 maxSize, 停止接受数据
       this.sign = false
       return 1
     }
@@ -70,21 +77,21 @@ export class PortData {
     return 0
   }
 
-  // 获取当前数组的最后500条数据,不足500条在前方补0
-  public getPromiseData() {
+  // 获取当前数组的最后 displayedData 条数据, 不足则在前方补0
+  public makeDisplayedData() {
     const dataToRenderer: DeviceData = { data1: [], data2: [], data3: [], data4: [] }
-    const lenOfSlice = this.getLength() >= 500 ? 500 : this.getLength()
+    const lenOfSlice = this.getLength() < this.displayedData ? this.getLength() : this.displayedData
     dataToRenderer.data1 = this.dataCache.data1.slice(-lenOfSlice)
     dataToRenderer.data2 = this.dataCache.data2.slice(-lenOfSlice)
     dataToRenderer.data3 = this.dataCache.data3.slice(-lenOfSlice)
     dataToRenderer.data4 = this.dataCache.data4.slice(-lenOfSlice)
-    if (lenOfSlice < 500) {
-      dataToRenderer.data1 = Array(500 - lenOfSlice).fill(0).concat(dataToRenderer.data1)
-      dataToRenderer.data2 = Array(500 - lenOfSlice).fill(0).concat(dataToRenderer.data2)
-      dataToRenderer.data3 = Array(500 - lenOfSlice).fill(0).concat(dataToRenderer.data3)
-      dataToRenderer.data4 = Array(500 - lenOfSlice).fill(0).concat(dataToRenderer.data4)
+    if (lenOfSlice < this.displayedData) {
+      dataToRenderer.data1 = Array(this.displayedData - lenOfSlice).fill(0).concat(dataToRenderer.data1)
+      dataToRenderer.data2 = Array(this.displayedData - lenOfSlice).fill(0).concat(dataToRenderer.data2)
+      dataToRenderer.data3 = Array(this.displayedData - lenOfSlice).fill(0).concat(dataToRenderer.data3)
+      dataToRenderer.data4 = Array(this.displayedData - lenOfSlice).fill(0).concat(dataToRenderer.data4)
     }
-    return Promise.resolve(dataToRenderer)
+    return dataToRenderer
   }
 
   // 获取当前缓存数据的长度
@@ -227,6 +234,7 @@ let mainWindow: BrowserWindow | null
 // 注册事件监听器
 ipcMain.handle("get-version-code", app.getVersion)
 ipcMain.handle("", getPortsInfo)
+ipcMain.on("", (_, dataSize) => setDisplayedData(dataSize))
 
 ipcMain.handle("connect-device", (_, deviceName, cacheSize) => getDeviceInfo(deviceName, cacheSize))
 ipcMain.on("disconnect-device", disconnectDevice)
@@ -360,8 +368,13 @@ async function getDeviceInfo(deviceName: string, cacheSize: number) {
 }
 
 // 从缓存中读取数据
-async function getData() {
-  return await portData.getPromiseData()
+function getData() {
+  return portData.makeDisplayedData()
+}
+
+// 设置表格中显示的数据量
+function setDisplayedData(dataSize: number) {
+  portData.setDispData(dataSize)
 }
 
 // 为已创建的端口绑定管道
