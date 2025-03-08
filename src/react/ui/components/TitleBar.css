@@ -1,0 +1,64 @@
+.titleBar {
+  user-select: none;
+  app-region: drag;
+  height: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.titleBar.isDarwin {
+  justify-content: center;
+}
+
+.titleBarLogo {
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.appIcon {
+  width: 20px;
+  height: 20px;
+  margin: 8px;
+}
+
+.titleText {
+  margin-top: 24px;
+}
+
+.isDarwin .titleText {
+  margin-top: 20px;
+}
+
+.windowController {
+  width: 120px;
+  margin-right: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.controllerIcon {
+  app-region: no-drag;
+  width: 16px;
+  height: 16px;
+  margin: 4px;
+  padding: 4px 6px;
+}
+
+.controllerIcon:hover.light {
+  filter: brightness(4);
+}
+
+.controllerIcon:active.light {
+  filter: brightness(5.2);
+}
+
+.controllerIcon:hover.dark {
+  filter: brightness(0.7);
+}
+
+.controllerIcon:active.dark {
+  filter: brightness(0.5);
+}

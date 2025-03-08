@@ -1,5 +1,5 @@
 import { DelimiterParser } from "@serialport/parser-delimiter"
-import { app, BrowserWindow, dialog, ipcMain, nativeImage } from "electron"
+import { app, BrowserWindow, dialog, ipcMain, nativeImage, nativeTheme } from "electron"
 import { autoUpdater } from "electron-updater"
 import * as fs from "node:fs"
 import path from "node:path"
@@ -35,7 +35,7 @@ export class PortData {
   private sign: boolean
 
   constructor() {
-    this.dataCache = { data1: [], data2: [], data3: [], data4: [] }
+    this.dataCache = {data1: [], data2: [], data3: [], data4: []}
     this.displayedData = 500
     this.maxSize = 2000
     this.sign = true
@@ -43,7 +43,7 @@ export class PortData {
 
   // 初始化数据缓存
   public initData() {
-    this.dataCache = { data1: [], data2: [], data3: [], data4: [] }
+    this.dataCache = {data1: [], data2: [], data3: [], data4: []}
     this.sign = true
   }
 
@@ -79,7 +79,7 @@ export class PortData {
 
   // 获取当前数组的最后 displayedData 条数据, 不足则在前方补0
   public makeDisplayedData() {
-    const dataToRenderer: DeviceData = { data1: [], data2: [], data3: [], data4: [] }
+    const dataToRenderer: DeviceData = {data1: [], data2: [], data3: [], data4: []}
     const lenOfSlice = this.getLength() < this.displayedData ? this.getLength() : this.displayedData
     dataToRenderer.data1 = this.dataCache.data1.slice(-lenOfSlice)
     dataToRenderer.data2 = this.dataCache.data2.slice(-lenOfSlice)
@@ -115,12 +115,12 @@ export class Detector {
     this.sp = null
     this.timerId = null
     this.isPause = false
-    this.dInfo = { name: "", port: "", status: false }
+    this.dInfo = {name: "", port: "", status: false}
   }
 
   // 重置设备信息
   public initDeviceInfo() {
-    this.dInfo = { name: "", port: "", status: false }
+    this.dInfo = {name: "", port: "", status: false}
   }
 
   // 设置设备信息
@@ -142,7 +142,7 @@ export class Detector {
       return this.sp as SerialPort
     }
     this.isPause = false
-    this.sp = new SerialPort({ path: portPath, baudRate: 115200, autoOpen: false })
+    this.sp = new SerialPort({path: portPath, baudRate: 115200, autoOpen: false})
     // 创建心跳检测器, 持续检测设备连接状态
     this.initTimer(portPath)
     return this.sp
@@ -233,6 +233,16 @@ let mainWindow: BrowserWindow | null
 
 // 注册事件监听器
 ipcMain.handle("get-version-code", app.getVersion)
+ipcMain.handle("get-platform", () => process.platform)
+
+ipcMain.on("window-minimize", () => mainWindow?.minimize())
+ipcMain.on("window-maximize", () => {
+  if (mainWindow?.isMaximized()) mainWindow.restore()
+  else mainWindow?.maximize()
+})
+ipcMain.on("window-close", () => mainWindow?.close())
+
+
 ipcMain.handle("", getPortsInfo)
 ipcMain.on("", (_, dataSize) => setDisplayedData(dataSize))
 
@@ -259,20 +269,14 @@ const createWindow = () => {
       preload: preloadPath,
     },
     // remove the default titleBar
-    titleBarStyle: "hidden",
-    // expose window controls in Windows/Linux
-    ...(process.platform !== "darwin" ? {
-      titleBarOverlay: {
-        color: "#FFFFFF",
-        height: 20
-      }
-    } : {}),
+    titleBarStyle: "hidden"
   })
 
   if (isDev) mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL!)
   else mainWindow.loadFile(path.join(indexHtmlPath, "index.html"))
 
   mainWindow.once("ready-to-show", () => {
+    mainWindow?.webContents.send("theme-updated", nativeTheme.shouldUseDarkColors)
     mainWindow?.show()
   })
 }
@@ -280,6 +284,12 @@ const createWindow = () => {
 app.whenReady().then(async () => {
   createWindow()
   await autoUpdater.checkForUpdatesAndNotify()
+
+  nativeTheme.on("updated", () => {
+    BrowserWindow.getAllWindows().forEach(win => {
+      win.webContents.send("theme-updated", nativeTheme.shouldUseDarkColors)
+    })
+  })
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
@@ -302,7 +312,7 @@ async function initAndDataCheck(portPath: string): Promise<boolean> {
   await new Promise<void>((resolve, reject) => {
     testSP.open((err) => {
       if (err) {
-        mainWindow?.webContents.send('responseMessage', ResponseCode.PortOpenFailed)
+        mainWindow?.webContents.send("responseMessage", ResponseCode.PortOpenFailed)
         reject(err)
       } else {
         resolve()
@@ -325,13 +335,13 @@ async function dataCheck(testSP: SerialPort): Promise<boolean> {
   let testBuffer: Buffer
   try {
     await new Promise<void>((resolve) => {
-      testSP.on('readable', () => {
+      testSP.on("readable", () => {
         testBuffer = testSP.read(17)
         if (testBuffer) {
           testData = testBuffer.toString()
-          console.log('test data:', testData)
-          result = (testData.indexOf(',') == 3) && (testData.indexOf('\n') == 16) && (testData.indexOf('n') == -1)
-          console.log('test result:', result)
+          console.log("test data:", testData)
+          result = (testData.indexOf(",") == 3) && (testData.indexOf("\n") == 16) && (testData.indexOf("n") == -1)
+          console.log("test result:", result)
           testSP.removeAllListeners()
           resolve()
         }
@@ -350,11 +360,11 @@ async function getDeviceInfo(deviceName: string, cacheSize: number) {
     const portsInfo = await SerialPort.list()
     const portPath = getPath(deviceName, portsInfo)
     // 先检测是否有设备连接, 若有连接则进行初始化和数据检查
-    if ((portPath.length == 0) || (! await initAndDataCheck(portPath))) {
+    if ((portPath.length == 0) || (!await initAndDataCheck(portPath))) {
       console.log("name:", detector.getDeviceInfo().name, "port:", detector.getDeviceInfo().port)
       return detector.getDeviceInfo()
     } else {
-      detector.setDeviceInfo({ name: deviceName, port: portPath, status: true })
+      detector.setDeviceInfo({name: deviceName, port: portPath, status: true})
       console.log("name:", detector.getDeviceInfo().name, "port:", detector.getDeviceInfo().port)
       // 初始化数据缓存
       portData.initData()
@@ -379,7 +389,7 @@ function setDisplayedData(dataSize: number) {
 
 // 为已创建的端口绑定管道
 function makePipe(sp: SerialPort) {
-  const parser = sp.pipe(new DelimiterParser({ delimiter: "\n" }))
+  const parser = sp.pipe(new DelimiterParser({delimiter: "\n"}))
   parser.on("data", (chunk: Buffer) => {
     // 若当前端口为暂停状态, 放弃当前Buffer内的数据
     if (detector.getSPPauseStat()) {
@@ -492,8 +502,8 @@ async function saveToCSV(): Promise<void> {
 async function showSaveDialog(): Promise<string> {
   const savePath = await dialog.showSaveDialog({
     filters: [
-      { name: "CSV Files", extensions: ["csv"] },
-      { name: "TXT Files", extensions: ["txt"] }],
+      {name: "CSV Files", extensions: ["csv"]},
+      {name: "TXT Files", extensions: ["txt"]}],
     properties: ["showHiddenFiles", "createDirectory"],
     defaultPath: "data.csv"
   })

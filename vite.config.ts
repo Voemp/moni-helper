@@ -1,8 +1,9 @@
-import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
-import electron from 'vite-plugin-electron/simple'
-import { viteStaticCopy } from 'vite-plugin-static-copy'
-import pkg from './package.json'
+import react from "@vitejs/plugin-react"
+import { defineConfig } from "vite"
+import electron from "vite-plugin-electron/simple"
+import { viteStaticCopy } from "vite-plugin-static-copy"
+import svgr from "vite-plugin-svgr"
+import pkg from "./package.json"
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -11,24 +12,24 @@ export default defineConfig({
     electron({
       main: {
         // Shortcut of `build.lib.entry`
-        entry: 'src/electron/main/index.ts',
+        entry: "src/electron/main/index.ts",
         vite: {
           build: {
-            outDir: 'dist/electron/main',
+            outDir: "dist/electron/main",
             rollupOptions: {
-              external: Object.keys('dependencies' in pkg ? pkg.dependencies : {}),
+              external: Object.keys("dependencies" in pkg ? pkg.dependencies : {}),
             },
           }
         }
       },
       preload: {
         // Shortcut of `build.rollupOptions.input`
-        input: 'src/electron/preload/index.ts',
+        input: "src/electron/preload/index.ts",
         vite: {
           build: {
-            outDir: 'dist/electron/preload',
+            outDir: "dist/electron/preload",
             rollupOptions: {
-              external: Object.keys('dependencies' in pkg ? pkg.dependencies : {}),
+              external: Object.keys("dependencies" in pkg ? pkg.dependencies : {}),
             },
           }
         }
@@ -39,13 +40,14 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: 'src/electron/assets/*',
-          dest: '../electron/assets/',
+          src: "src/electron/assets/*",
+          dest: "../electron/assets/",
         }
       ]
-    })
+    }),
+    svgr()
   ],
   build: {
-    outDir: 'dist/react',
+    outDir: "dist/react",
   }
 })

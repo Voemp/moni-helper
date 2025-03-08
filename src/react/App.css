@@ -1,0 +1,15 @@
+body {
+  transition: background-color 0.3s;
+}
+
+body.light {
+  background-color: #ffffff; /* 亮色背景 */
+}
+
+body.dark {
+  background-color: #141414; /* 暗色背景 */
+}
+
+.pager {
+  margin: 8px;
+}
