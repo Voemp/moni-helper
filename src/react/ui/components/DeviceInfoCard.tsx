@@ -129,7 +129,7 @@ function DeviceInfoCard({
                 maxLength: 5,
                 onChange: (value) => {
                   if (Number.isNaN(parseInt(value)) || parseInt(value) < 0) return
-                  else if (parseInt(value) > 10000) value = "10000"
+                  else if (parseInt(value) > 50000) value = "50000"
                   setCacheSize(parseInt(value))
                   localStorage.setItem("cacheSize", value)
                 },
@@ -143,7 +143,7 @@ function DeviceInfoCard({
                 maxLength: 4,
                 onChange: (value) => {
                   if (Number.isNaN(parseInt(value)) || parseInt(value) < 10) return
-                  else if (parseInt(value) > 5000) value = "5000"
+                  else if (parseInt(value) > 2000) value = "2000"
                   window.ipcRenderer.send("set-data-accuracy", parseInt(value))
                   setDataAccuracy(parseInt(value))
                   localStorage.setItem("dataAccuracy", value)

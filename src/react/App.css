@@ -1,13 +1,23 @@
+:root {
+  color-scheme: light dark;
+}
+
 body {
   transition: background-color 0.3s;
 }
 
-body.light {
-  background-color: #ffffff; /* 亮色背景 */
+@media (prefers-color-scheme: light) {
+  body {
+    background: #ffffff;
+    color: #1F1F1F;
+  }
 }
 
-body.dark {
-  background-color: #141414; /* 暗色背景 */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #141414;
+    color: #DCDCDC;
+  }
 }
 
 .pager {

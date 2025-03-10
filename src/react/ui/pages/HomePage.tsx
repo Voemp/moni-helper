@@ -5,7 +5,7 @@ import { DeviceInfo } from "../../../types/DeviceInfo"
 import { ResponseCode } from "../../../types/ResponseCode.ts"
 import ActionCard from "../components/ActionCard.tsx"
 import CenterAlert from "../components/CenterAlert.tsx"
-import DataAreaCard from "../components/DataAreaCard.tsx"
+import { DataChartCard } from "../components/DataChartCard.tsx"
 import DeviceInfoCard from "../components/DeviceInfoCard.tsx"
 import SaveStatusCard from "../components/SaveStatusCard.tsx"
 
@@ -114,16 +114,16 @@ function HomePage() {
               {deviceData ?
                 <Row gutter={[8, 8]} style={{marginTop: 8}}>
                   <Col span={12}>
-                    <DataAreaCard title={"通道 1"} value={deviceData?.data1} />
+                    <DataChartCard title={"通道 1"} data={deviceData?.data1} />
                   </Col>
                   <Col span={12}>
-                    <DataAreaCard title={"通道 2"} value={deviceData?.data2} />
+                    <DataChartCard title={"通道 2"} data={deviceData?.data2} />
                   </Col>
                   <Col span={12}>
-                    <DataAreaCard title={"通道 3"} value={deviceData?.data3} />
+                    <DataChartCard title={"通道 3"} data={deviceData?.data3} />
                   </Col>
                   <Col span={12}>
-                    <DataAreaCard title={"通道 4"} value={deviceData?.data4} />
+                    <DataChartCard title={"通道 4"} data={deviceData?.data4} />
                   </Col>
                 </Row> :
                 <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} style={{marginTop: 200}} />

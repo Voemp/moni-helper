@@ -7,25 +7,19 @@ import "./App.css"
 
 function App() {
   // 当前主题状态
-  const [darkTheme, setDarkTheme] = useState(false)
+  const [darkTheme, setDarkTheme] = useState(localStorage.getItem("lastTheme") === "true" || false)
 
   useEffect(() => {
     // 监听主题更新事件
     window.ipcRenderer.on("theme-updated", (_, isDarkMode: boolean) => {
       setDarkTheme(isDarkMode)
-      console.log("Theme updated:", isDarkMode)
+      localStorage.setItem("lastTheme", isDarkMode ? "true" : "false")
     })
   }, [])
 
-  useEffect(() => {
-    // 根据当前主题状态给 body 添加相应的 class
-    document.body.classList.remove("light", "dark")
-    document.body.classList.add(darkTheme ? "dark" : "light")
-  }, [darkTheme])
-
   return (
     <>
-      <TitleBar isDarkMode={darkTheme}></TitleBar>
+      <TitleBar></TitleBar>
       <div className="pager">
         <ConfigProvider
           locale={zhCN}

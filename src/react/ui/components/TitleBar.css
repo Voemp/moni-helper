@@ -47,18 +47,41 @@
   padding: 4px 6px;
 }
 
-.controllerIcon:hover.light {
-  filter: brightness(4);
+@media (prefers-color-scheme: light) {
+  .titleBar {
+    background: #ffffff;
+    color: #1F1F1F;
+  }
+
+  .controllerIcon {
+    fill: #1F1F1F;
+  }
+
+  .controllerIcon:hover {
+    filter: brightness(4);
+  }
+
+  .controllerIcon:active {
+    filter: brightness(5.2);
+  }
 }
 
-.controllerIcon:active.light {
-  filter: brightness(5.2);
-}
 
-.controllerIcon:hover.dark {
-  filter: brightness(0.7);
-}
+@media (prefers-color-scheme: dark) {
+  .titleBar {
+    background: #141414;
+    color: #DCDCDC;
+  }
 
-.controllerIcon:active.dark {
-  filter: brightness(0.5);
+  .controllerIcon {
+    fill: #DCDCDC;
+  }
+
+  .controllerIcon:hover {
+    filter: brightness(0.7);
+  }
+
+  .controllerIcon:active {
+    filter: brightness(0.5);
+  }
 }

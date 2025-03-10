@@ -77,7 +77,7 @@ export class PortData {
     return 0
   }
 
-  // 获取当前数组的最后 displayedData 条数据, 不足则在前方补0
+  // 获取当前数组的最后 displayedData 条数据, 不足则在前方补 "-"
   public makeDisplayedData() {
     const dataToRenderer: DeviceData = {data1: [], data2: [], data3: [], data4: []}
     const lenOfSlice = this.getLength() < this.displayedData ? this.getLength() : this.displayedData
@@ -86,10 +86,10 @@ export class PortData {
     dataToRenderer.data3 = this.dataCache.data3.slice(-lenOfSlice)
     dataToRenderer.data4 = this.dataCache.data4.slice(-lenOfSlice)
     if (lenOfSlice < this.displayedData) {
-      dataToRenderer.data1 = Array(this.displayedData - lenOfSlice).fill(0).concat(dataToRenderer.data1)
-      dataToRenderer.data2 = Array(this.displayedData - lenOfSlice).fill(0).concat(dataToRenderer.data2)
-      dataToRenderer.data3 = Array(this.displayedData - lenOfSlice).fill(0).concat(dataToRenderer.data3)
-      dataToRenderer.data4 = Array(this.displayedData - lenOfSlice).fill(0).concat(dataToRenderer.data4)
+      dataToRenderer.data1 = Array(this.displayedData - lenOfSlice).fill("-").concat(dataToRenderer.data1)
+      dataToRenderer.data2 = Array(this.displayedData - lenOfSlice).fill("-").concat(dataToRenderer.data2)
+      dataToRenderer.data3 = Array(this.displayedData - lenOfSlice).fill("-").concat(dataToRenderer.data3)
+      dataToRenderer.data4 = Array(this.displayedData - lenOfSlice).fill("-").concat(dataToRenderer.data4)
     }
     return dataToRenderer
   }
@@ -259,8 +259,8 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     title: "MoniHelper",
     icon: appIcon,
-    width: 900,
-    height: 700,
+    width: 1060,
+    height: 800,
     minWidth: 900,
     minHeight: 700,
     show: false,
