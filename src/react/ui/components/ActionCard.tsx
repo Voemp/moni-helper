@@ -1,5 +1,5 @@
-import { DeleteOutlined, DownloadOutlined, PlayCircleOutlined, StopOutlined } from "@ant-design/icons"
-import { Button, Card, ConfigProvider, Flex, Popconfirm } from "antd"
+import { DeleteOutlined, DownloadOutlined, PlayCircleOutlined, StopOutlined } from '@ant-design/icons'
+import { Button, Card, ConfigProvider, Flex, Popconfirm } from 'antd'
 
 interface ActionCardProps {
   deviceStatus?: boolean
@@ -33,7 +33,7 @@ function ActionCard({
       <Card>
         <Flex vertical justify="space-between" align="center" style={{height: 142}}>
           {!isCacheFull ?
-            <Button onClick={startMonitoring} icon={<PlayCircleOutlined />} style={{width: "100%", height: "30%"}}
+            <Button onClick={startMonitoring} icon={<PlayCircleOutlined />} style={{width: '100%', height: '30%'}}
                     type="primary" disabled={!deviceStatus || isMonitoring}>开始监测</Button> :
             <Popconfirm
               title="确认要清空数据吗？"
@@ -42,12 +42,12 @@ function ActionCard({
               cancelText="取消"
               onConfirm={deleteData}
               placement="bottomRight">
-              <Button danger icon={<DeleteOutlined />} style={{width: "100%", height: "30%"}}
+              <Button danger icon={<DeleteOutlined />} style={{width: '100%', height: '30%'}}
                       type="primary" disabled={!deviceStatus || isMonitoring}>清空数据</Button>
             </Popconfirm>
           }
           {(isMonitoring || !hasGotData || isCacheFull) ?
-            <Button onClick={stopMonitoring} icon={<StopOutlined />} style={{width: "100%", height: "30%"}}
+            <Button onClick={stopMonitoring} icon={<StopOutlined />} style={{width: '100%', height: '30%'}}
                     disabled={!deviceStatus || !isMonitoring}>停止监测</Button> :
             <Popconfirm
               title="确认要清空数据吗？"
@@ -56,12 +56,12 @@ function ActionCard({
               cancelText="取消"
               onConfirm={deleteData}
               placement="bottomRight">
-              <Button danger icon={<DeleteOutlined />} style={{width: "100%", height: "30%"}}
+              <Button danger icon={<DeleteOutlined />} style={{width: '100%', height: '30%'}}
                       type="primary" disabled={!deviceStatus || isMonitoring}>清空数据</Button>
             </Popconfirm>
           }
 
-          <Button onClick={saveData} icon={<DownloadOutlined />} style={{width: "100%", height: "30%"}}
+          <Button onClick={saveData} icon={<DownloadOutlined />} style={{width: '100%', height: '30%'}}
                   disabled={isMonitoring || !hasGotData}>保存数据</Button>
         </Flex>
       </Card>

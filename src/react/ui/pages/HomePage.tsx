@@ -1,13 +1,13 @@
-import { Col, Empty, Flex, message, Row } from "antd"
-import { useEffect, useState } from "react"
-import { DeviceData } from "../../../types/DeviceData"
-import { DeviceInfo } from "../../../types/DeviceInfo"
-import { ResponseCode } from "../../../types/ResponseCode.ts"
-import ActionCard from "../components/ActionCard.tsx"
-import CenterAlert from "../components/CenterAlert.tsx"
-import { DataChartCard } from "../components/DataChartCard.tsx"
-import DeviceInfoCard from "../components/DeviceInfoCard.tsx"
-import SaveStatusCard from "../components/SaveStatusCard.tsx"
+import { Col, Empty, Flex, message, Row } from 'antd'
+import { useEffect, useState } from 'react'
+import { DeviceData } from '../../../types/DeviceData'
+import { DeviceInfo } from '../../../types/DeviceInfo'
+import { ResponseCode } from '../../../types/ResponseCode.ts'
+import ActionCard from '../components/ActionCard.tsx'
+import CenterAlert from '../components/CenterAlert.tsx'
+import { DataChartCard } from '../components/DataChartCard.tsx'
+import DeviceInfoCard from '../components/DeviceInfoCard.tsx'
+import SaveStatusCard from '../components/SaveStatusCard.tsx'
 
 function HomePage() {
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | undefined>(undefined)
@@ -20,20 +20,20 @@ function HomePage() {
   const [showCacheAlreadyFulledAlert, setShowCacheAlreadyFulledAlert] = useState(false)
   const [showSaveResult, setShowSaveResult] = useState(false)
   const [saveResult, setSaveResult] = useState<boolean | undefined>(undefined)
-  const [cacheSize, setCacheSize] = useState(parseInt(localStorage.getItem("cacheSize")!) || 10000)
+  const [cacheSize, setCacheSize] = useState(parseInt(localStorage.getItem('cacheSize')!) || 10000)
 
   // 获取设备数据
   useEffect(() => {
     if (!isMonitoring || !deviceInfo?.status) return
-    const dataInterval = setInterval(async () => {
-      await handleGetDeviceData()
+    const dataInterval = setInterval(() => {
+      handleGetDeviceData()
     }, 100)
     return () => clearInterval(dataInterval)
   }, [isMonitoring, deviceInfo?.status])
 
   // 监听消息
   useEffect(() => {
-    window.ipcRenderer.on("responseMessage", (_, msg) => {
+    window.ipcRenderer.on('responseMessage', (_, msg) => {
       switch (msg) {
         // 设备意外断开
         case ResponseCode.DeviceDisconnected:
@@ -49,7 +49,7 @@ function HomePage() {
           break
         // 数据即将到达缓存上限
         case ResponseCode.CacheAlmostFulled:
-          message.warning({content: "数据即将达到缓存上限（80%）", style: {marginTop: 30}})
+          message.warning({content: '数据即将达到缓存上限（80%）', style: {marginTop: 30}})
           break
         // 保存文件完成
         case ResponseCode.SaveFileFinished:
@@ -64,7 +64,7 @@ function HomePage() {
       }
     })
     return () => {
-      window.ipcRenderer.removeAllListeners("responseMessage")
+      window.ipcRenderer.removeAllListeners('responseMessage')
     }
   }, [])
 
@@ -73,15 +73,15 @@ function HomePage() {
     <>
       <Flex vertical>
         <>
-          <CenterAlert visible={showConnectErrorAlert} message={"连接失败"}
-                       description={"可能是不支持的设备或设备未正确插入，如果仍有问题，请尝试重新拔插设备或重启程序。"}
-                       type={"error"} onClose={() => setShowConnectErrorAlert(false)} />
-          <CenterAlert visible={showUnexpectDisconnectAlert} message={"意外断开"}
-                       description={"检测到设备意外断开，你仍可以保存已记录的数据。注意：重新连接设备后数据会丢失。"}
-                       type={"error"} onClose={() => setUnexpectDisconnectAlert(false)} />
-          <CenterAlert visible={showCacheAlreadyFulledAlert} message={"数据已达上限"}
-                       description={"出于性能考量，数据量已达缓存上限，请保存并清空数据后再重新开始监测数据，你可以选择断开设备后更改数据上限。"}
-                       type={"error"} onClose={() => setShowCacheAlreadyFulledAlert(false)} />
+          <CenterAlert visible={showConnectErrorAlert} message="连接失败"
+                       description="可能是不支持的设备或设备未正确插入，如果仍有问题，请尝试重新拔插设备或重启程序。"
+                       type="error" onClose={() => setShowConnectErrorAlert(false)} />
+          <CenterAlert visible={showUnexpectDisconnectAlert} message="意外断开"
+                       description="检测到设备意外断开，你仍可以保存已记录的数据。注意：重新连接设备后数据会丢失。"
+                       type="error" onClose={() => setUnexpectDisconnectAlert(false)} />
+          <CenterAlert visible={showCacheAlreadyFulledAlert} message="数据已达上限"
+                       description="出于性能考量，数据量已达缓存上限，请保存并清空数据后再重新开始监测数据，你可以选择断开设备后更改数据上限。"
+                       type="error" onClose={() => setShowCacheAlreadyFulledAlert(false)} />
         </>
         <Row gutter={8}>
           <Col span={18}>
@@ -109,35 +109,35 @@ function HomePage() {
             <SaveStatusCard saveResult={saveResult!} onClose={() => {
               setShowSaveResult(false)
               setSaveResult(undefined)
-            }} /> :
-            <>
-              {deviceData ?
-                <Row gutter={[8, 8]} style={{marginTop: 8}}>
-                  <Col span={12}>
-                    <DataChartCard title={"通道 1"} data={deviceData?.data1} />
-                  </Col>
-                  <Col span={12}>
-                    <DataChartCard title={"通道 2"} data={deviceData?.data2} />
-                  </Col>
-                  <Col span={12}>
-                    <DataChartCard title={"通道 3"} data={deviceData?.data3} />
-                  </Col>
-                  <Col span={12}>
-                    <DataChartCard title={"通道 4"} data={deviceData?.data4} />
-                  </Col>
-                </Row> :
-                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} style={{marginTop: 200}} />
-              }
-            </>
+            }} />
+            :
+            deviceData ?
+              <Row gutter={[8, 8]} style={{marginTop: 8}}>
+                <Col span={12}>
+                  <DataChartCard title="通道 1" data={deviceData?.data1} />
+                </Col>
+                <Col span={12}>
+                  <DataChartCard title="通道 2" data={deviceData?.data2} />
+                </Col>
+                <Col span={12}>
+                  <DataChartCard title="通道 3" data={deviceData?.data3} />
+                </Col>
+                <Col span={12}>
+                  <DataChartCard title="通道 4" data={deviceData?.data4} />
+                </Col>
+              </Row>
+              :
+              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} style={{marginTop: 200}} />
+
         }
       </Flex>
     </>
   )
 
   // 连接设备
-  async function handleConnectDevice() {
+  function handleConnectDevice() {
     setIsConnecting(true)
-    await window.ipcRenderer.invoke("connect-device", deviceInfo?.name, cacheSize).then(r => {
+    window.ipcRenderer.invoke('connect-device', deviceInfo?.name, cacheSize).then(r => {
       if (r.status) {
         setDeviceInfo({
           name: r.name,
@@ -146,7 +146,7 @@ function HomePage() {
         })
         setDeviceData(undefined)
         setIsCacheFull(false)
-        message.success({content: "连接成功", duration: 1, style: {marginTop: 30}})
+        message.success({content: '连接成功', duration: 1, style: {marginTop: 30}})
       } else {
         setShowConnectErrorAlert(true)
         setDeviceInfo(undefined)
@@ -157,7 +157,7 @@ function HomePage() {
 
   // 断开设备
   function handleDisconnectDevice() {
-    window.ipcRenderer.send("disconnect-device")
+    window.ipcRenderer.send('disconnect-device')
     setDeviceInfo(undefined)
     setDeviceData(undefined)
     setIsMonitoring(false)
@@ -166,31 +166,31 @@ function HomePage() {
 
   // 开始监测数据
   function handleStartMonitoring() {
-    window.ipcRenderer.send("start-monitoring")
+    window.ipcRenderer.send('start-monitoring')
     setIsMonitoring(true)
   }
 
   // 停止监测数据
   function handleStopMonitoring() {
-    window.ipcRenderer.send("stop-monitoring")
+    window.ipcRenderer.send('stop-monitoring')
     setIsMonitoring(false)
   }
 
   // 保存数据
   function handleSaveData() {
-    window.ipcRenderer.send("save-data", deviceData)
+    window.ipcRenderer.send('save-data', deviceData)
   }
 
   // 删除数据
   function handleDeleteData() {
-    window.ipcRenderer.send("delete-data")
+    window.ipcRenderer.send('delete-data')
     setDeviceData(undefined)
     setIsCacheFull(false)
   }
 
   // 获取设备数据
-  async function handleGetDeviceData() {
-    await window.ipcRenderer.invoke("get-device-data").then(r => {
+  function handleGetDeviceData() {
+    window.ipcRenderer.invoke('get-device-data').then(r => {
       if (r) {
         setDeviceData({
           data1: r.data1,

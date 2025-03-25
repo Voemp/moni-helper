@@ -1,6 +1,6 @@
-import { Card } from "antd"
-import * as echarts from "echarts"
-import { useEffect, useRef, useState } from "react"
+import { Card } from 'antd'
+import * as echarts from 'echarts'
+import { useEffect, useRef, useState } from 'react'
 
 
 interface DataChartProps {
@@ -8,13 +8,13 @@ interface DataChartProps {
   data?: number[] | undefined
 }
 
-export const DataChartCard = ({title = "未命名", data = undefined}: DataChartProps) => {
+export const DataChartCard = ({title = '未命名', data = undefined}: DataChartProps) => {
   // 当前主题状态
-  const [darkTheme, setDarkTheme] = useState(localStorage.getItem("lastTheme") === "true" || false)
+  const [darkTheme, setDarkTheme] = useState(localStorage.getItem('lastTheme') === 'true' || false)
 
   useEffect(() => {
     // 监听主题更新事件
-    window.ipcRenderer.on("theme-updated", (_, isDarkMode: boolean) => {
+    window.ipcRenderer.on('theme-updated', (_, isDarkMode: boolean) => {
       setDarkTheme(isDarkMode)
     })
   }, [])
@@ -40,22 +40,22 @@ export const DataChartCard = ({title = "未命名", data = undefined}: DataChart
       title: {
         text: title,
         textStyle: {
-          color: darkTheme ? "#CDCDCD" : "#1F1F1F"
+          color: darkTheme ? '#CDCDCD' : '#1F1F1F'
         }
       },
       tooltip: {
-        trigger: "axis",
-        backgroundColor: darkTheme ? "#141414" : "#ffffff",
-        borderColor: darkTheme ? "#141414" : "#ffffff",
+        trigger: 'axis',
+        backgroundColor: darkTheme ? '#141414' : '#ffffff',
+        borderColor: darkTheme ? '#141414' : '#ffffff',
         textStyle: {
-          color: darkTheme ? "#CDCDCD" : "#1F1F1F"
+          color: darkTheme ? '#CDCDCD' : '#1F1F1F'
         },
         formatter: (params: { marker: string, data: number }[]) => {
           return `${params[0].marker} ${params[0].data}`
         }
       },
       xAxis: {
-        type: "category",
+        type: 'category',
         animationDurationUpdate: 100,
         axisTick: {
           interval: (data!.length / 5) - 1
@@ -65,33 +65,33 @@ export const DataChartCard = ({title = "未命名", data = undefined}: DataChart
         }
       },
       yAxis: {
-        type: "value",
+        type: 'value',
         animationDurationUpdate: 100,
         splitLine: {
           lineStyle: {
-            color: darkTheme ? "#303641" : "#E0E6F1"
+            color: darkTheme ? '#303641' : '#E0E6F1'
           }
         }
       },
       series: [
         {
-          type: "line",
-          symbol: "none",
+          type: 'line',
+          symbol: 'none',
           smooth: true,
           animationDuration: 0,
           lineStyle: {
-            color: "rgb(22, 119, 255, 0.5)",
+            color: 'rgb(22, 119, 255, 0.5)',
             width: 1
           },
           areaStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               {
                 offset: 0,
-                color: "rgb(22, 119, 255, 1)"
+                color: 'rgb(22, 119, 255, 1)'
               },
               {
                 offset: 1,
-                color: "rgba(22, 119, 255, 0)"
+                color: 'rgba(22, 119, 255, 0)'
               }
             ])
           },
@@ -121,14 +121,14 @@ export const DataChartCard = ({title = "未命名", data = undefined}: DataChart
     const handleWindowResize = () => {
       setChartHeight(getChartHeight())
     }
-    window.addEventListener("resize", handleWindowResize)
-    return () => window.removeEventListener("resize", handleWindowResize)
+    window.addEventListener('resize', handleWindowResize)
+    return () => window.removeEventListener('resize', handleWindowResize)
   }, [])
 
   return (
     <div ref={containerRef} style={{height: chartHeight}}>
-      <Card style={{padding: 0, height: "100%"}}>
-        <div ref={chartRef} style={{width: "104%", height: chartHeight}} />
+      <Card style={{padding: 0, height: '100%'}}>
+        <div ref={chartRef} style={{width: '104%', height: chartHeight}} />
       </Card>
     </div>
   )
