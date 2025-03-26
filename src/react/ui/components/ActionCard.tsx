@@ -12,7 +12,7 @@ interface ActionCardProps {
   deleteData: () => void
 }
 
-function ActionCard({
+const ActionCard = ({
                       deviceStatus = false,
                       isMonitoring = false,
                       isCacheFull = false,
@@ -21,7 +21,7 @@ function ActionCard({
                       stopMonitoring,
                       saveData,
                       deleteData
-                    }: ActionCardProps) {
+                    }: ActionCardProps) => {
   return (
     <ConfigProvider theme={{
       components: {

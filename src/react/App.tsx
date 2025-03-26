@@ -1,8 +1,8 @@
+import TitleBar from '@/react/ui/components/TitleBar'
+import HomePage from '@/react/ui/pages/HomePage.tsx'
 import { ConfigProvider, theme } from 'antd'
 import zhCN from 'antd/locale/zh_CN'
 import { useEffect, useState } from 'react'
-import { TitleBar } from './ui/components/TitleBar.tsx'
-import HomePage from './ui/pages/HomePage.tsx'
 import './App.css'
 
 function App() {

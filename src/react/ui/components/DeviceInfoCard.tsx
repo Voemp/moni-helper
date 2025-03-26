@@ -1,3 +1,5 @@
+import { useThrottle } from '@/react/utils/hooks'
+import { DeviceInfo } from '@/types/DeviceInfo'
 import {
   ClockCircleOutlined, DisconnectOutlined, FrownOutlined, InfoCircleOutlined, LinkOutlined
 } from '@ant-design/icons'
@@ -5,7 +7,6 @@ import {
   Badge, Button, Card, Col, ConfigProvider, Flex, Popconfirm, Row, Select, Space, Statistic, Tag, Tooltip, Typography
 } from 'antd'
 import { useEffect, useState } from 'react'
-import { DeviceInfo } from '../../../types/DeviceInfo'
 
 const {Text} = Typography
 
@@ -19,7 +20,7 @@ interface DeviceInfoProps {
   disconnectDevice: () => void
 }
 
-function DeviceInfoCard({
+const DeviceInfoCard = ({
                           deviceInfo = {
                             name: '设备信息',
                             port: '未知',
@@ -31,7 +32,7 @@ function DeviceInfoCard({
                           isConnecting,
                           connectDevice,
                           disconnectDevice
-                        }: DeviceInfoProps) {
+                        }: DeviceInfoProps) => {
   const [time, setTime] = useState(new Date())
   const [versionCode, setVersionCode] = useState('')
   const [deviceList, setDeviceList] = useState<string[]>([])
@@ -50,6 +51,17 @@ function DeviceInfoCard({
       setVersionCode('v' + r)
     })
   }, [])
+
+  // 获取设备列表
+  const getDeviceList = useThrottle(() => {
+    if (hasGetDeviceList) return
+    setHasGetDeviceList(true)
+    window.ipcRenderer.invoke('get-device-list').then(r => {
+      if (r) {
+        setDeviceList(r)
+      }
+    })
+  }, 2000)
 
 
   return (
@@ -74,37 +86,36 @@ function DeviceInfoCard({
             </Tooltip>
           </Space>
         </Flex>
-      }
-            extra={!deviceInfo.status ?
-              deviceInfo.name === '设备信息' ?
-                <Select defaultActiveFirstOption={false} placeholder="选择设备"
-                        notFoundContent={
-                          <Flex style={{justifyContent: 'space-between'}}>
-                            <FrownOutlined />
-                            <span>没有设备</span>
-                          </Flex>}
-                        options={deviceList?.map(item => ({
-                          value: item,
-                          label: item
-                        }))}
-                        onFocus={getDeviceList} onBlur={() => setHasGetDeviceList(false)} onChange={setDeviceName}
-                        style={{width: 110}}></Select>
-                :
-                <Button type="primary" onClick={() => {
-                  connectDevice()
-                  window.ipcRenderer.send('set-data-accuracy', dataAccuracy)
-                }} icon={<LinkOutlined />}
-                        loading={isConnecting}>连接设备</Button>
-              :
-              <Popconfirm
-                title="确认要断开连接吗？"
-                description="请确保数据已经保存完毕，以防丢失数据。"
-                okText="确认"
-                cancelText="取消"
-                onConfirm={disconnectDevice}>
-                <Button icon={<DisconnectOutlined />} danger>断开设备</Button>
-              </Popconfirm>
-            }>
+      } extra={!deviceInfo.status ?
+        deviceInfo.name === '设备信息' ?
+          <Select defaultActiveFirstOption={false} placeholder="选择设备"
+                  notFoundContent={
+                    <Flex style={{justifyContent: 'space-between'}}>
+                      <FrownOutlined />
+                      <span>没有设备</span>
+                    </Flex>}
+                  options={deviceList?.map(item => ({
+                    value: item,
+                    label: item
+                  }))}
+                  onClick={getDeviceList} onBlur={() => setHasGetDeviceList(false)} onChange={setDeviceName}
+                  style={{width: 110}} />
+          :
+          <Button type="primary" onClick={() => {
+            connectDevice()
+            window.ipcRenderer.send('set-data-accuracy', dataAccuracy)
+          }} icon={<LinkOutlined />}
+                  loading={isConnecting}>连接设备</Button>
+        :
+        <Popconfirm
+          title="确认要断开连接吗？"
+          description="请确保数据已经保存完毕，以防丢失数据。"
+          okText="确认"
+          cancelText="取消"
+          onConfirm={disconnectDevice}>
+          <Button icon={<DisconnectOutlined />} danger>断开设备</Button>
+        </Popconfirm>
+      }>
         <Row gutter={4}>
           <Col span={6}>
             <Statistic title="连接状态" valueRender={() => (
@@ -164,17 +175,6 @@ function DeviceInfoCard({
   function truncate(str: string, maxLength = 10) {
     if (str.startsWith('/dev/')) str = str.substring(5, str.length)
     return str.length > maxLength ? str.substring(0, maxLength / 2) + '...' + str.substring(str.length - maxLength / 2) : str
-  }
-
-  // 获取设备列表
-  function getDeviceList() {
-    if (hasGetDeviceList) return
-    setHasGetDeviceList(true)
-    window.ipcRenderer.invoke('get-device-list').then(r => {
-      if (r) {
-        setDeviceList(r)
-      }
-    })
   }
 
   function setDeviceName(deviceName: string) {

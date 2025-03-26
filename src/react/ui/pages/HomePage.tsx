@@ -1,15 +1,15 @@
+import ActionCard from '@/react/ui/components/ActionCard.tsx'
+import CenterAlert from '@/react/ui/components/CenterAlert.tsx'
+import DataChartCard from '@/react/ui/components/DataChartCard.tsx'
+import DeviceInfoCard from '@/react/ui/components/DeviceInfoCard.tsx'
+import SaveStatusCard from '@/react/ui/components/SaveStatusCard.tsx'
+import { DeviceData } from '@/types/DeviceData'
+import { DeviceInfo } from '@/types/DeviceInfo'
+import { ResponseCode } from '@/types/ResponseCode.ts'
 import { Col, Empty, Flex, message, Row } from 'antd'
 import { useEffect, useState } from 'react'
-import { DeviceData } from '../../../types/DeviceData'
-import { DeviceInfo } from '../../../types/DeviceInfo'
-import { ResponseCode } from '../../../types/ResponseCode.ts'
-import ActionCard from '../components/ActionCard.tsx'
-import CenterAlert from '../components/CenterAlert.tsx'
-import { DataChartCard } from '../components/DataChartCard.tsx'
-import DeviceInfoCard from '../components/DeviceInfoCard.tsx'
-import SaveStatusCard from '../components/SaveStatusCard.tsx'
 
-function HomePage() {
+const HomePage = () => {
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | undefined>(undefined)
   const [deviceData, setDeviceData] = useState<DeviceData | undefined>(undefined)
   const [isMonitoring, setIsMonitoring] = useState(false)

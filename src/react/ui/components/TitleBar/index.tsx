@@ -1,12 +1,12 @@
-import { useState } from 'react'
-import appIcon from '../../assets/app_icon.svg'
+import appIcon from '@/react/assets/app_icon.svg'
 import './TitleBar.css'
-import CloseIcon from '../../assets/window_close_icon.svg?react'
-import MaximizeIcon from '../../assets/window_maximize_icon.svg?react'
-import MinimizeIcon from '../../assets/window_minimize_icon.svg?react'
-import RestoreIcon from '../../assets/window_restore_icon.svg?react'
+import CloseIcon from '@/react/assets/window_close_icon.svg?react'
+import MaximizeIcon from '@/react/assets/window_maximize_icon.svg?react'
+import MinimizeIcon from '@/react/assets/window_minimize_icon.svg?react'
+import RestoreIcon from '@/react/assets/window_restore_icon.svg?react'
+import { useState } from 'react'
 
-export const TitleBar = () => {
+const TitleBar = () => {
   const [platform, setPlatform] = useState()
   window.ipcRenderer.invoke('get-platform').then(r => setPlatform(r))
 
@@ -51,3 +51,5 @@ export const TitleBar = () => {
     </>
   )
 }
+
+export default TitleBar

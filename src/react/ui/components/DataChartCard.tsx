@@ -8,7 +8,7 @@ interface DataChartProps {
   data?: number[] | undefined
 }
 
-export const DataChartCard = ({title = '未命名', data = undefined}: DataChartProps) => {
+const DataChartCard = ({title = '未命名', data = undefined}: DataChartProps) => {
   // 当前主题状态
   const [darkTheme, setDarkTheme] = useState(localStorage.getItem('lastTheme') === 'true' || false)
 
@@ -133,3 +133,5 @@ export const DataChartCard = ({title = '未命名', data = undefined}: DataChart
     </div>
   )
 }
+
+export default DataChartCard

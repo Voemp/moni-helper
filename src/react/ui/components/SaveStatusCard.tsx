@@ -1,11 +1,11 @@
-import { Button, Result } from "antd"
+import { Button, Result } from 'antd'
 
 interface SaveStatusCardProps {
   saveResult: boolean,
   onClose: () => void
 }
 
-function SaveStatusCard({saveResult, onClose}: SaveStatusCardProps) {
+const SaveStatusCard = ({saveResult, onClose}: SaveStatusCardProps) => {
   return (saveResult ?
       <Result
         status="success"
