@@ -33,17 +33,9 @@ const DeviceInfoCard = ({
                           connectDevice,
                           disconnectDevice
                         }: DeviceInfoProps) => {
-  const [time, setTime] = useState(new Date())
   const [versionCode, setVersionCode] = useState('')
   const [deviceList, setDeviceList] = useState<string[]>([])
-  const [hasGetDeviceList, setHasGetDeviceList] = useState(false)
   const [dataAccuracy, setDataAccuracy] = useState(parseInt(localStorage.getItem('dataAccuracy')!) || 500)
-
-  // 获取系统时间
-  useEffect(() => {
-    const timeInterval = setInterval(() => setTime(new Date()), 1000)
-    return () => clearInterval(timeInterval)
-  }, [])
 
   // 获取软件版本号
   useEffect(() => {
@@ -54,8 +46,6 @@ const DeviceInfoCard = ({
 
   // 获取设备列表
   const getDeviceList = useThrottle(() => {
-    if (hasGetDeviceList) return
-    setHasGetDeviceList(true)
     window.ipcRenderer.invoke('get-device-list').then(r => {
       if (r) {
         setDeviceList(r)
@@ -77,9 +67,7 @@ const DeviceInfoCard = ({
           <Text copyable={deviceInfo.status} style={{fontSize: 20, marginTop: 4}}>{deviceInfo.name}</Text>
           <Space style={{marginBottom: 7, marginRight: 8}}>
             <Tooltip title="系统时间" placement="bottom">
-              <Tag icon={<ClockCircleOutlined />}>
-                {new Intl.DateTimeFormat(undefined, {timeStyle: 'medium'}).format(time)}
-              </Tag>
+              <ClockTag />
             </Tooltip>
             <Tooltip title="软件版本" placement="bottom">
               <Tag icon={<InfoCircleOutlined />}>{versionCode}</Tag>
@@ -93,12 +81,15 @@ const DeviceInfoCard = ({
                     <Flex style={{justifyContent: 'space-between'}}>
                       <FrownOutlined />
                       <span>没有设备</span>
-                    </Flex>}
-                  options={deviceList?.map(item => ({
-                    value: item,
-                    label: item
-                  }))}
-                  onClick={getDeviceList} onBlur={() => setHasGetDeviceList(false)} onChange={setDeviceName}
+                    </Flex>
+                  }
+                  options={
+                    deviceList?.map(item => ({
+                      value: item,
+                      label: item
+                    }))
+                  }
+                  onClick={getDeviceList} onChange={setDeviceName}
                   style={{width: 110}} />
           :
           <Button type="primary" onClick={() => {
@@ -184,6 +175,22 @@ const DeviceInfoCard = ({
       status: false
     })
   }
+}
+
+const ClockTag = () => {
+  const [time, setTime] = useState(new Date())
+
+  // 获取系统时间
+  useEffect(() => {
+    const timeInterval = setInterval(() => setTime(new Date()), 1000)
+    return () => clearInterval(timeInterval)
+  }, [])
+
+  return (
+    <Tag icon={<ClockCircleOutlined />}>
+      {Intl.DateTimeFormat(undefined, {timeStyle: 'medium'}).format(time)}
+    </Tag>
+  )
 }
 
 

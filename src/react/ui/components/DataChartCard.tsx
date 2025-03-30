@@ -1,6 +1,6 @@
-import { Card } from 'antd'
+import { Card, ConfigProvider, theme } from 'antd'
 import * as echarts from 'echarts'
-import { useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 
 
 interface DataChartProps {
@@ -10,14 +10,8 @@ interface DataChartProps {
 
 const DataChartCard = ({title = '未命名', data = undefined}: DataChartProps) => {
   // 当前主题状态
-  const [darkTheme, setDarkTheme] = useState(localStorage.getItem('lastTheme') === 'true' || false)
-
-  useEffect(() => {
-    // 监听主题更新事件
-    window.ipcRenderer.on('theme-updated', (_, isDarkMode: boolean) => {
-      setDarkTheme(isDarkMode)
-    })
-  }, [])
+  const themeContext = useContext(ConfigProvider.ConfigContext)
+  const darkTheme = themeContext.theme?.algorithm === theme.darkAlgorithm
 
   // 图表容器引用
   const chartRef = useRef(null)

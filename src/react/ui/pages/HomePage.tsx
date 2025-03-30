@@ -104,31 +104,29 @@ const HomePage = () => {
                         deleteData={handleDeleteData} />
           </Col>
         </Row>
-        {
-          showSaveResult ?
-            <SaveStatusCard saveResult={saveResult!} onClose={() => {
-              setShowSaveResult(false)
-              setSaveResult(undefined)
-            }} />
+        {showSaveResult ?
+          <SaveStatusCard saveResult={saveResult!} onClose={() => {
+            setShowSaveResult(false)
+            setSaveResult(undefined)
+          }} />
+          :
+          deviceData ?
+            <Row gutter={[8, 8]} style={{marginTop: 8}}>
+              <Col span={12}>
+                <DataChartCard title="通道 1" data={deviceData?.data1} />
+              </Col>
+              <Col span={12}>
+                <DataChartCard title="通道 2" data={deviceData?.data2} />
+              </Col>
+              <Col span={12}>
+                <DataChartCard title="通道 3" data={deviceData?.data3} />
+              </Col>
+              <Col span={12}>
+                <DataChartCard title="通道 4" data={deviceData?.data4} />
+              </Col>
+            </Row>
             :
-            deviceData ?
-              <Row gutter={[8, 8]} style={{marginTop: 8}}>
-                <Col span={12}>
-                  <DataChartCard title="通道 1" data={deviceData?.data1} />
-                </Col>
-                <Col span={12}>
-                  <DataChartCard title="通道 2" data={deviceData?.data2} />
-                </Col>
-                <Col span={12}>
-                  <DataChartCard title="通道 3" data={deviceData?.data3} />
-                </Col>
-                <Col span={12}>
-                  <DataChartCard title="通道 4" data={deviceData?.data4} />
-                </Col>
-              </Row>
-              :
-              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} style={{marginTop: 200}} />
-
+            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} style={{marginTop: 200}} />
         }
       </Flex>
     </>
