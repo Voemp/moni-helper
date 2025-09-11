@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="175" src="./src/electron/assets/app_icon.png" alt="icon">
+  <img width="175" src="src/electron/assets/app_icon.png" alt="icon">
 </p>
 <div align="center">
   <h1>Moni Helper</h1>
@@ -11,6 +11,7 @@
 > Moni Helper 使用了以下开源项目的部分或全部内容
 
 - [「React」 by Meta](https://github.com/facebook/react)
+- [「tailwindcss」 by Tailwind Labs](https://github.com/tailwindlabs/tailwindcss)
 - [「Vite」 by Vite](https://github.com/vitejs/vite)
 - [「Electron」 by Electron](https://github.com/electron/electron)
 - [「electron-builder」 by Electron Userland](https://github.com/electron-userland/electron-builder)

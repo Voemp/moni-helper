@@ -1,5 +1,5 @@
-import { useThrottle } from '@/react/utils/hooks'
-import { DeviceInfo } from '@/types/DeviceInfo'
+import { useThrottle } from '@/renderer/utils/hooks'
+import { DeviceInfo } from '@/shared/types'
 import {
   ClockCircleOutlined, DisconnectOutlined, FrownOutlined, InfoCircleOutlined, LinkOutlined
 } from '@ant-design/icons'
@@ -8,7 +8,7 @@ import {
 } from 'antd'
 import { useEffect, useState } from 'react'
 
-const {Text} = Typography
+const { Text } = Typography
 
 interface DeviceInfoProps {
   deviceInfo?: DeviceInfo
@@ -63,9 +63,9 @@ const DeviceInfoCard = ({
       }
     }}>
       <Card title={
-        <Flex style={{justifyContent: 'space-between'}}>
-          <Text copyable={deviceInfo.status} style={{fontSize: 20, marginTop: 4}}>{deviceInfo.name}</Text>
-          <Space style={{marginBottom: 7, marginRight: 8}}>
+        <Flex style={{ justifyContent: 'space-between' }}>
+          <Text copyable={deviceInfo.status} style={{ fontSize: 20, marginTop: 4 }}>{deviceInfo.name}</Text>
+          <Space style={{ marginBottom: 7, marginRight: 8 }}>
             <Tooltip title="系统时间" placement="bottom">
               <ClockTag />
             </Tooltip>
@@ -78,7 +78,7 @@ const DeviceInfoCard = ({
         deviceInfo.name === '设备信息' ?
           <Select defaultActiveFirstOption={false} placeholder="选择设备"
                   notFoundContent={
-                    <Flex style={{justifyContent: 'space-between'}}>
+                    <Flex style={{ justifyContent: 'space-between' }}>
                       <FrownOutlined />
                       <span>没有设备</span>
                     </Flex>
@@ -90,7 +90,7 @@ const DeviceInfoCard = ({
                     }))
                   }
                   onClick={getDeviceList} onChange={setDeviceName}
-                  style={{width: 110}} />
+                  style={{ width: 110 }} />
           :
           <Button type="primary" onClick={() => {
             connectDevice()
@@ -114,7 +114,7 @@ const DeviceInfoCard = ({
                 {deviceInfo.status ? '已连接' : '未连接'}
                 <Badge
                   status={deviceInfo.status ? 'success' : 'error'}
-                  style={{marginLeft: 8}}
+                  style={{ marginLeft: 8 }}
                 />
               </Flex>
             )} />
@@ -139,7 +139,7 @@ const DeviceInfoCard = ({
                   localStorage.setItem('cacheSize', value)
                 },
                 text: cacheSize.toString()
-              } : undefined} style={{fontSize: 24, margin: 0}}>{cacheSize}</Text>
+              } : undefined} style={{ fontSize: 24, margin: 0 }}>{cacheSize}</Text>
             )} />
           </Col>
           <Col span={6}>
@@ -154,7 +154,7 @@ const DeviceInfoCard = ({
                   localStorage.setItem('dataAccuracy', value)
                 },
                 text: dataAccuracy.toString()
-              }} style={{fontSize: 24, margin: 0}}>{dataAccuracy}</Text>
+              }} style={{ fontSize: 24, margin: 0 }}>{dataAccuracy}</Text>
             )} />
           </Col>
         </Row>
@@ -188,7 +188,7 @@ const ClockTag = () => {
 
   return (
     <Tag icon={<ClockCircleOutlined />}>
-      {Intl.DateTimeFormat(undefined, {timeStyle: 'medium'}).format(time)}
+      {Intl.DateTimeFormat(undefined, { timeStyle: 'medium' }).format(time)}
     </Tag>
   )
 }

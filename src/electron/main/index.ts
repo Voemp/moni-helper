@@ -1,20 +1,18 @@
-import { DelimiterParser } from "@serialport/parser-delimiter"
-import { app, BrowserWindow, dialog, ipcMain, nativeImage, nativeTheme } from "electron"
-import { autoUpdater } from "electron-updater"
-import * as fs from "node:fs"
-import path from "node:path"
-import { SerialPort } from "serialport"
-import { DeviceData } from "../../types/DeviceData"
-import { DeviceInfo } from "../../types/DeviceInfo"
-import { ResponseCode } from "../../types/ResponseCode"
+import { ResponseCode } from '@/shared/enums.ts'
+import type { DeviceData, DeviceInfo } from '@/shared/types'
+import { app, BrowserWindow, dialog, ipcMain, nativeImage, nativeTheme } from 'electron'
+import { autoUpdater } from 'electron-updater'
+import * as fs from 'node:fs'
+import path from 'node:path'
+import { DelimiterParser, SerialPort } from 'serialport'
 
-const isDev = process.env.NODE_ENV === "development"
+const isDev = process.env.NODE_ENV === 'development'
 
-const preloadPath = path.join(app.getAppPath(), "dist/electron/preload/index.mjs")
-const indexHtmlPath = path.join(app.getAppPath(), "dist/react")
+const preloadPath = path.join(app.getAppPath(), 'dist/electron/preload/index.mjs')
+const indexHtmlPath = path.join(app.getAppPath(), 'dist/renderer')
 const iconPath = isDev
-  ? path.resolve("src/electron/assets/app_icon.png")
-  : path.join(app.getAppPath(), "dist/electron/assets/app_icon.png")
+  ? path.resolve('src/electron/assets/app_icon.png')
+  : path.join(app.getAppPath(), 'dist/electron/assets/app_icon.png')
 const appIcon = nativeImage.createFromPath(iconPath)
 
 export interface PortsInfo {
@@ -35,7 +33,7 @@ export class PortData {
   private sign: boolean
 
   constructor() {
-    this.dataCache = {data1: [], data2: [], data3: [], data4: []}
+    this.dataCache = { data1: [], data2: [], data3: [], data4: [] }
     this.displayedData = 500
     this.maxSize = 2000
     this.sign = true
@@ -43,7 +41,7 @@ export class PortData {
 
   // 初始化数据缓存
   public initData() {
-    this.dataCache = {data1: [], data2: [], data3: [], data4: []}
+    this.dataCache = { data1: [], data2: [], data3: [], data4: [] }
     this.sign = true
   }
 
@@ -79,17 +77,17 @@ export class PortData {
 
   // 获取当前数组的最后 displayedData 条数据, 不足则在前方补 "-"
   public makeDisplayedData() {
-    const dataToRenderer: DeviceData = {data1: [], data2: [], data3: [], data4: []}
+    const dataToRenderer: DeviceData = { data1: [], data2: [], data3: [], data4: [] }
     const lenOfSlice = this.getLength() < this.displayedData ? this.getLength() : this.displayedData
     dataToRenderer.data1 = this.dataCache.data1.slice(-lenOfSlice)
     dataToRenderer.data2 = this.dataCache.data2.slice(-lenOfSlice)
     dataToRenderer.data3 = this.dataCache.data3.slice(-lenOfSlice)
     dataToRenderer.data4 = this.dataCache.data4.slice(-lenOfSlice)
     if (lenOfSlice < this.displayedData) {
-      dataToRenderer.data1 = Array(this.displayedData - lenOfSlice).fill("-").concat(dataToRenderer.data1)
-      dataToRenderer.data2 = Array(this.displayedData - lenOfSlice).fill("-").concat(dataToRenderer.data2)
-      dataToRenderer.data3 = Array(this.displayedData - lenOfSlice).fill("-").concat(dataToRenderer.data3)
-      dataToRenderer.data4 = Array(this.displayedData - lenOfSlice).fill("-").concat(dataToRenderer.data4)
+      dataToRenderer.data1 = Array(this.displayedData - lenOfSlice).fill('-').concat(dataToRenderer.data1)
+      dataToRenderer.data2 = Array(this.displayedData - lenOfSlice).fill('-').concat(dataToRenderer.data2)
+      dataToRenderer.data3 = Array(this.displayedData - lenOfSlice).fill('-').concat(dataToRenderer.data3)
+      dataToRenderer.data4 = Array(this.displayedData - lenOfSlice).fill('-').concat(dataToRenderer.data4)
     }
     return dataToRenderer
   }
@@ -115,12 +113,12 @@ export class Detector {
     this.sp = null
     this.timerId = null
     this.isPause = false
-    this.dInfo = {name: "", port: "", status: false}
+    this.dInfo = { name: '', port: '', status: false }
   }
 
   // 重置设备信息
   public initDeviceInfo() {
-    this.dInfo = {name: "", port: "", status: false}
+    this.dInfo = { name: '', port: '', status: false }
   }
 
   // 设置设备信息
@@ -138,11 +136,11 @@ export class Detector {
   // 新建监听端口
   public initSP(portPath: string): SerialPort {
     if (this.getSPInitStat()) {
-      console.log("SP alr Init")
+      console.log('SP alr Init')
       return this.sp as SerialPort
     }
     this.isPause = false
-    this.sp = new SerialPort({path: portPath, baudRate: 115200, autoOpen: false})
+    this.sp = new SerialPort({ path: portPath, baudRate: 115200, autoOpen: false })
     // 创建心跳检测器, 持续检测设备连接状态
     this.initTimer(portPath)
     return this.sp
@@ -151,7 +149,7 @@ export class Detector {
   // 关闭并销毁监听端口
   public closeAndDeleteSP() {
     if (!this.getSPInitStat()) {
-      console.log("SP has not Init")
+      console.log('SP has not Init')
       return
     }
     // 关闭监听端口
@@ -159,7 +157,7 @@ export class Detector {
       this.sp?.removeAllListeners()
       this.sp?.close((err) => {
         if (err) {
-          mainWindow?.webContents.send("responseMessage", ResponseCode.PortCloseFailed)
+          mainWindow?.webContents.send('responseMessage', ResponseCode.PortCloseFailed)
         }
       })
     }
@@ -173,10 +171,10 @@ export class Detector {
   public resumeSP() {
     if (this.sp?.isOpen) {
       if (this.isPause) {
-        console.log("SP is Resume")
+        console.log('SP is Resume')
         this.isPause = false
       } else {
-        console.log("SP has not Paused")
+        console.log('SP has not Paused')
       }
     }
   }
@@ -185,9 +183,9 @@ export class Detector {
   public pauseSP() {
     if (this.sp?.isOpen) {
       if (this.isPause) {
-        console.log("SP alr Paused")
+        console.log('SP alr Paused')
       } else {
-        console.log("SP is Pause")
+        console.log('SP is Pause')
         this.isPause = true
       }
     }
@@ -209,12 +207,12 @@ export class Detector {
       const psInfo: PortsInfo[] = await SerialPort.list()
       const sign = psInfo.some(pInfo => pInfo.path === portPath)
       if (!sign) {
-        mainWindow?.webContents.send("responseMessage", ResponseCode.DeviceDisconnected)
-        console.log("Device disconnected unexpectedly")
+        mainWindow?.webContents.send('responseMessage', ResponseCode.DeviceDisconnected)
+        console.log('Device disconnected unexpectedly')
         this.initDeviceInfo()
         this.closeAndDeleteSP()
       } else {
-        console.log("Device connecting")
+        console.log('Device connecting')
       }
     }, 1000)
   }
@@ -232,32 +230,32 @@ const detector = new Detector
 let mainWindow: BrowserWindow | null
 
 // 注册事件监听器
-ipcMain.handle("get-version-code", app.getVersion)
-ipcMain.handle("get-platform", () => process.platform)
+ipcMain.handle('get-version-code', app.getVersion)
+ipcMain.handle('get-platform', () => process.platform)
 
-ipcMain.on("window-minimize", () => mainWindow?.minimize())
-ipcMain.on("window-maximize", () => {
+ipcMain.on('window-minimize', () => mainWindow?.minimize())
+ipcMain.on('window-maximize', () => {
   if (mainWindow?.isMaximized()) mainWindow.restore()
   else mainWindow?.maximize()
 })
-ipcMain.on("window-close", () => mainWindow?.close())
+ipcMain.on('window-close', () => mainWindow?.close())
 
-ipcMain.handle("get-device-list", getPortsName)
-ipcMain.on("set-data-accuracy", (_, dataSize) => setDisplayedData(dataSize))
+ipcMain.handle('get-device-list', getPortsName)
+ipcMain.on('set-data-accuracy', (_, dataSize) => setDisplayedData(dataSize))
 
-ipcMain.handle("connect-device", (_, deviceName, cacheSize) => getDeviceInfo(deviceName, cacheSize))
-ipcMain.on("disconnect-device", disconnectDevice)
+ipcMain.handle('connect-device', (_, deviceName, cacheSize) => getDeviceInfo(deviceName, cacheSize))
+ipcMain.on('disconnect-device', disconnectDevice)
 
-ipcMain.handle("get-device-data", getData)
-ipcMain.on("start-monitoring", startRead)
-ipcMain.on("stop-monitoring", stopRead)
+ipcMain.handle('get-device-data', getData)
+ipcMain.on('start-monitoring', startRead)
+ipcMain.on('stop-monitoring', stopRead)
 
-ipcMain.on("save-data", saveToCSV)
-ipcMain.on("delete-data", clearCache)
+ipcMain.on('save-data', saveToCSV)
+ipcMain.on('delete-data', clearCache)
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
-    title: "MoniHelper",
+    title: 'MoniHelper',
     icon: appIcon,
     width: 1060,
     height: 800,
@@ -265,18 +263,26 @@ const createWindow = () => {
     minHeight: 700,
     show: false,
     webPreferences: {
-      preload: preloadPath,
+      preload: preloadPath
     },
     // remove the default titleBar
-    titleBarStyle: "hidden"
+    titleBarStyle: 'hidden'
   })
 
   if (isDev) mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL!)
-  else mainWindow.loadFile(path.join(indexHtmlPath, "index.html"))
+  else mainWindow.loadFile(path.join(indexHtmlPath, 'index.html'))
 
-  mainWindow.once("ready-to-show", () => {
-    mainWindow?.webContents.send("theme-updated", nativeTheme.shouldUseDarkColors)
+  mainWindow.once('ready-to-show', () => {
+    mainWindow?.webContents.send('theme-updated', nativeTheme.shouldUseDarkColors)
     mainWindow?.show()
+  })
+
+  mainWindow.on('maximize', () => {
+    mainWindow?.webContents.send('window-state-changed', 'maximized')
+  })
+
+  mainWindow.on('unmaximize', () => {
+    mainWindow?.webContents.send('window-state-changed', 'unmaximized')
   })
 }
 
@@ -284,19 +290,19 @@ app.whenReady().then(async () => {
   createWindow()
   await autoUpdater.checkForUpdatesAndNotify()
 
-  nativeTheme.on("updated", () => {
+  nativeTheme.on('updated', () => {
     BrowserWindow.getAllWindows().forEach(win => {
-      win.webContents.send("theme-updated", nativeTheme.shouldUseDarkColors)
+      win.webContents.send('theme-updated', nativeTheme.shouldUseDarkColors)
     })
   })
 
-  app.on("activate", () => {
+  app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
 
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") app.quit()
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit()
   else mainWindow = null
 })
 
@@ -316,7 +322,7 @@ async function initAndDataCheck(portPath: string): Promise<boolean> {
   await new Promise<void>((resolve, reject) => {
     testSP.open((err) => {
       if (err) {
-        mainWindow?.webContents.send("responseMessage", ResponseCode.PortOpenFailed)
+        mainWindow?.webContents.send('responseMessage', ResponseCode.PortOpenFailed)
         reject(err)
       } else {
         resolve()
@@ -339,13 +345,13 @@ async function dataCheck(testSP: SerialPort): Promise<boolean> {
   let testBuffer: Buffer
   try {
     await new Promise<void>((resolve) => {
-      testSP.on("readable", () => {
+      testSP.on('readable', () => {
         testBuffer = testSP.read(17)
         if (testBuffer) {
           testData = testBuffer.toString()
-          console.log("test data:", testData)
-          result = (testData.indexOf(",") == 3) && (testData.indexOf("\n") == 16) && (testData.indexOf("n") == -1)
-          console.log("test result:", result)
+          console.log('test data:', testData)
+          result = (testData.indexOf(',') == 3) && (testData.indexOf('\n') == 16) && (testData.indexOf('n') == -1)
+          console.log('test result:', result)
           testSP.removeAllListeners()
           resolve()
         }
@@ -365,11 +371,11 @@ async function getDeviceInfo(deviceName: string, cacheSize: number) {
     const portPath = getPath(deviceName, portsInfo)
     // 先检测是否有设备连接, 若有连接则进行初始化和数据检查
     if ((portPath.length == 0) || (!await initAndDataCheck(portPath))) {
-      console.log("name:", detector.getDeviceInfo().name, "port:", detector.getDeviceInfo().port)
+      console.log('name:', detector.getDeviceInfo().name, 'port:', detector.getDeviceInfo().port)
       return detector.getDeviceInfo()
     } else {
-      detector.setDeviceInfo({name: deviceName, port: portPath, status: true})
-      console.log("name:", detector.getDeviceInfo().name, "port:", detector.getDeviceInfo().port)
+      detector.setDeviceInfo({ name: deviceName, port: portPath, status: true })
+      console.log('name:', detector.getDeviceInfo().name, 'port:', detector.getDeviceInfo().port)
       // 初始化数据缓存
       portData.initData()
       portData.setCacheSize(cacheSize)
@@ -377,7 +383,7 @@ async function getDeviceInfo(deviceName: string, cacheSize: number) {
     }
   } catch (error) {
     console.log(error)
-    mainWindow?.webContents.send("responseMessage", ResponseCode.PortScanFailed)
+    mainWindow?.webContents.send('responseMessage', ResponseCode.PortScanFailed)
   }
 }
 
@@ -393,20 +399,20 @@ function setDisplayedData(dataSize: number) {
 
 // 为已创建的端口绑定管道
 function makePipe(sp: SerialPort) {
-  const parser = sp.pipe(new DelimiterParser({delimiter: "\n"}))
-  parser.on("data", (chunk: Buffer) => {
+  const parser = sp.pipe(new DelimiterParser({ delimiter: '\n' }))
+  parser.on('data', (chunk: Buffer) => {
     // 若当前端口为暂停状态, 放弃当前Buffer内的数据
     if (detector.getSPPauseStat()) {
-      chunk.fill("")
+      chunk.fill('')
       return
     }
     const callback = portData.add(convertStringToArray(chunk.toString()))
     if (callback == 1) {
-      mainWindow?.webContents.send("responseMessage", ResponseCode.CacheAlmostFulled)
-      console.log("Data cache nearly full!!!!!")
+      mainWindow?.webContents.send('responseMessage', ResponseCode.CacheAlmostFulled)
+      console.log('Data cache nearly full!!!!!')
     } else if (callback == 2) {
-      mainWindow?.webContents.send("responseMessage", ResponseCode.CacheAlreadyFulled)
-      console.log("Data cache fulled, read stopped!!!!!!")
+      mainWindow?.webContents.send('responseMessage', ResponseCode.CacheAlreadyFulled)
+      console.log('Data cache fulled, read stopped!!!!!!')
       stopRead()
     }
   })
@@ -416,7 +422,7 @@ function makePipe(sp: SerialPort) {
 function startRead() {
   // 防止串口未初始化
   if (!detector.getSPInitStat()) {
-    console.log("SP has not init")
+    console.log('SP has not init')
     return
   }
   // 继续监听端口
@@ -427,7 +433,7 @@ function startRead() {
 function stopRead() {
   // 防止串口未初始化
   if (!detector.getSPInitStat()) {
-    console.log("SP has not init")
+    console.log('SP has not init')
     return
   }
   // 暂停监听窗口
@@ -447,18 +453,18 @@ function clearCache() {
 }
 
 function convertStringToArray(input: string): number[] {
-  return input.split(",").map(item => Number(item))
+  return input.split(',').map(item => Number(item))
 }
 
 function getPath(deviceName: string, portsInfo: PortsInfo[]) {
   if (portsInfo.length == 0) {
-    return ""
+    return ''
   }
   for (const pInfo of portsInfo) {
     if (pInfo.serialNumber == deviceName)
       return pInfo.path
   }
-  return ""
+  return ''
 }
 
 // 将缓存数据保存至CSV文件
@@ -467,8 +473,8 @@ async function saveToCSV(): Promise<void> {
   stopRead()
   // 弹出窗口等待用户指定保存位置
   const savePath = await showSaveDialog()
-  console.log("path to save:", savePath)
-  console.log("length of cache:", portData.getLength())
+  console.log('path to save:', savePath)
+  console.log('length of cache:', portData.getLength())
   try {
     await new Promise<void>((resolve, reject) => {
       // 若用户取消保存, 直接返回
@@ -478,7 +484,7 @@ async function saveToCSV(): Promise<void> {
       // 获取当前的缓存数据
       const dataCache = portData.getAllData()
       // 写入CSV的标题行
-      writeStream.write("data1,data2,data3,data4\n")
+      writeStream.write('data1,data2,data3,data4\n')
       // 异步逐行写入数据
       for (let i = 0; i < portData.getLength(); i++) {
         const row = [
@@ -487,18 +493,18 @@ async function saveToCSV(): Promise<void> {
           dataCache.data3[i],
           dataCache.data4[i]
         ]
-        writeStream.write(`${row.join(",")}\n`)
+        writeStream.write(`${row.join(',')}\n`)
       }
       // 完成写入后，关闭流
       writeStream.end()
       // 监听文件流完成事件
-      writeStream.on("finish", () => resolve())
+      writeStream.on('finish', () => resolve())
       // 监听文件流错误事件
-      writeStream.on("error", () => reject())
+      writeStream.on('error', () => reject())
     })
-    return mainWindow?.webContents.send("responseMessage", ResponseCode.SaveFileFinished)
+    return mainWindow?.webContents.send('responseMessage', ResponseCode.SaveFileFinished)
   } catch {
-    return mainWindow?.webContents.send("responseMessage", ResponseCode.SaveFileFailed)
+    return mainWindow?.webContents.send('responseMessage', ResponseCode.SaveFileFailed)
   }
 }
 
@@ -506,10 +512,10 @@ async function saveToCSV(): Promise<void> {
 async function showSaveDialog(): Promise<string> {
   const savePath = await dialog.showSaveDialog({
     filters: [
-      {name: "CSV Files", extensions: ["csv"]},
-      {name: "TXT Files", extensions: ["txt"]}],
-    properties: ["showHiddenFiles", "createDirectory"],
-    defaultPath: "data.csv"
+      { name: 'CSV Files', extensions: ['csv'] },
+      { name: 'TXT Files', extensions: ['txt'] }],
+    properties: ['showHiddenFiles', 'createDirectory'],
+    defaultPath: 'data.csv'
   })
   return savePath.filePath
 }

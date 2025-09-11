@@ -5,7 +5,7 @@ interface SaveStatusCardProps {
   onClose: () => void
 }
 
-const SaveStatusCard = ({saveResult, onClose}: SaveStatusCardProps) => {
+const SaveStatusCard = ({ saveResult, onClose }: SaveStatusCardProps) => {
   return (saveResult ?
       <Result
         status="success"

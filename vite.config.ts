@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import path from 'node:path'
 import { defineConfig } from 'vite'
@@ -11,32 +12,51 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.join(__dirname, 'src')
-    },
+    }
+  },
+  build: {
+    outDir: 'dist/renderer',
+    rollupOptions: {
+      external: [
+        'serialport'
+      ]
+    }
   },
   plugins: [
     react(),
+    tailwindcss(),
     electron({
       main: {
         // Shortcut of `build.lib.entry`
-        entry: "src/electron/main/index.ts",
+        entry: 'src/electron/main/index.ts',
         vite: {
+          resolve: {
+            alias: {
+              '@': path.join(__dirname, 'src')
+            }
+          },
           build: {
-            outDir: "dist/electron/main",
+            outDir: 'dist/electron/main',
             rollupOptions: {
-              external: Object.keys("dependencies" in pkg ? pkg.dependencies : {}),
-            },
+              external: Object.keys('dependencies' in pkg ? pkg.dependencies : {})
+            }
           }
         }
       },
       preload: {
         // Shortcut of `build.rollupOptions.input`
-        input: "src/electron/preload/index.ts",
+        input: 'src/electron/preload/index.ts',
         vite: {
+          resolve: {
+            alias: {
+              '@': path.join(__dirname, 'src')
+            }
+          },
           build: {
-            outDir: "dist/electron/preload",
+            outDir: 'dist/electron/preload',
             rollupOptions: {
-              external: Object.keys("dependencies" in pkg ? pkg.dependencies : {}),
-            },
+              external: Object.keys('dependencies' in pkg ? pkg.dependencies : {})
+            }
           }
         }
       },
@@ -46,14 +66,11 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: "src/electron/assets/*",
-          dest: "../electron/assets/",
+          src: 'src/electron/assets/*',
+          dest: '../electron/assets/'
         }
       ]
     }),
     svgr()
-  ],
-  build: {
-    outDir: "dist/react",
-  }
+  ]
 })

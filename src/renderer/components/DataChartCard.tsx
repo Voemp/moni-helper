@@ -8,7 +8,7 @@ interface DataChartProps {
   data?: number[] | undefined
 }
 
-const DataChartCard = ({title = '未命名', data = undefined}: DataChartProps) => {
+const DataChartCard = ({ title = '未命名', data = undefined }: DataChartProps) => {
   // 当前主题状态
   const themeContext = useContext(ConfigProvider.ConfigContext)
   const darkTheme = themeContext.theme?.algorithm === theme.darkAlgorithm
@@ -120,9 +120,9 @@ const DataChartCard = ({title = '未命名', data = undefined}: DataChartProps) 
   }, [])
 
   return (
-    <div ref={containerRef} style={{height: chartHeight}}>
-      <Card style={{padding: 0, height: '100%'}}>
-        <div ref={chartRef} style={{width: '104%', height: chartHeight}} />
+    <div ref={containerRef} style={{ height: chartHeight }}>
+      <Card style={{ padding: 0, height: '100%' }}>
+        <div ref={chartRef} style={{ width: '104%', height: chartHeight }} />
       </Card>
     </div>
   )

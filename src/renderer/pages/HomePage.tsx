@@ -1,11 +1,10 @@
-import ActionCard from '@/react/ui/components/ActionCard.tsx'
-import CenterAlert from '@/react/ui/components/CenterAlert.tsx'
-import DataChartCard from '@/react/ui/components/DataChartCard.tsx'
-import DeviceInfoCard from '@/react/ui/components/DeviceInfoCard.tsx'
-import SaveStatusCard from '@/react/ui/components/SaveStatusCard.tsx'
-import { DeviceData } from '@/types/DeviceData'
-import { DeviceInfo } from '@/types/DeviceInfo'
-import { ResponseCode } from '@/types/ResponseCode.ts'
+import ActionCard from '@/renderer/components/ActionCard.tsx'
+import CenterAlert from '@/renderer/components/CenterAlert.tsx'
+import DataChartCard from '@/renderer/components/DataChartCard.tsx'
+import DeviceInfoCard from '@/renderer/components/DeviceInfoCard.tsx'
+import SaveStatusCard from '@/renderer/components/SaveStatusCard.tsx'
+import { ResponseCode } from '@/shared/enums.ts'
+import { DeviceData, DeviceInfo } from '@/shared/types'
 import { Col, Empty, Flex, message, Row } from 'antd'
 import { useEffect, useState } from 'react'
 
@@ -49,7 +48,7 @@ const HomePage = () => {
           break
         // 数据即将到达缓存上限
         case ResponseCode.CacheAlmostFulled:
-          message.warning({content: '数据即将达到缓存上限（80%）', style: {marginTop: 30}})
+          message.warning({ content: '数据即将达到缓存上限（80%）', style: { marginTop: 30 } })
           break
         // 保存文件完成
         case ResponseCode.SaveFileFinished:
@@ -111,7 +110,7 @@ const HomePage = () => {
           }} />
           :
           deviceData ?
-            <Row gutter={[8, 8]} style={{marginTop: 8}}>
+            <Row gutter={[8, 8]} style={{ marginTop: 8 }}>
               <Col span={12}>
                 <DataChartCard title="通道 1" data={deviceData?.data1} />
               </Col>
@@ -126,7 +125,7 @@ const HomePage = () => {
               </Col>
             </Row>
             :
-            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} style={{marginTop: 200}} />
+            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} style={{ marginTop: 200 }} />
         }
       </Flex>
     </>
@@ -144,7 +143,7 @@ const HomePage = () => {
         })
         setDeviceData(undefined)
         setIsCacheFull(false)
-        message.success({content: '连接成功', duration: 1, style: {marginTop: 30}})
+        message.success({ content: '连接成功', duration: 1, style: { marginTop: 30 } })
       } else {
         setShowConnectErrorAlert(true)
         setDeviceInfo(undefined)

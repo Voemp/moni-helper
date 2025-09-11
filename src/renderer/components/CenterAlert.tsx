@@ -8,7 +8,7 @@ interface CenterAlertProps {
   onClose: () => void
 }
 
-const CenterAlert = ({visible, message, description, type, onClose}: CenterAlertProps) => {
+const CenterAlert = ({ visible, message, description, type, onClose }: CenterAlertProps) => {
   if (!visible) return null
 
   return (
@@ -16,7 +16,7 @@ const CenterAlert = ({visible, message, description, type, onClose}: CenterAlert
       position: 'fixed',
       left: '50%',
       transform: 'translateX(-50%)',
-      zIndex: 2,
+      zIndex: 2
     }}>
       <Alert
         message={message}

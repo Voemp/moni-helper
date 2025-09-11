@@ -1,0 +1,6 @@
+onlyBuiltDependencies:
+  - '@serialport/bindings-cpp'
+  - '@tailwindcss/oxide'
+  - electron
+  - electron-winstaller
+  - esbuild

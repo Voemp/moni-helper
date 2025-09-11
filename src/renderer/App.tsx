@@ -1,16 +1,15 @@
-import TitleBar from '@/react/ui/components/TitleBar'
-import HomePage from '@/react/ui/pages/HomePage.tsx'
+import TitleBar from '@/renderer/components/TitleBar'
+import HomePage from '@/renderer/pages/HomePage.tsx'
 import { ConfigProvider, theme } from 'antd'
 import zhCN from 'antd/locale/zh_CN'
 import { useEffect, useState } from 'react'
-import './App.css'
 
 function App() {
-  // 当前主题状态
-  const [darkTheme, setDarkTheme] = useState(localStorage.getItem('lastTheme') === 'true' || false)
+  const [darkTheme, setDarkTheme] = useState(
+    localStorage.getItem('lastTheme') === 'true' || false
+  )
 
   useEffect(() => {
-    // 监听主题更新事件
     window.ipcRenderer.on('theme-updated', (_, isDarkMode: boolean) => {
       setDarkTheme(isDarkMode)
       localStorage.setItem('lastTheme', isDarkMode ? 'true' : 'false')
@@ -19,22 +18,23 @@ function App() {
 
   return (
     <>
-      <TitleBar></TitleBar>
-      <div className="pager">
+      <TitleBar />
+      <div
+        className="m-2 transition-colors duration-300 bg-white text-neutral-900 dark:bg-[#141414] dark:text-neutral-200 min-h-[calc(100vh-40px)]">
         <ConfigProvider
           locale={zhCN}
           theme={{
             cssVar: true,
             algorithm: darkTheme ? theme.darkAlgorithm : theme.defaultAlgorithm,
             token: {
-              borderRadius: 12,
+              borderRadius: 12
             }
-          }}>
-          <HomePage></HomePage>
+          }}
+        >
+          <HomePage />
         </ConfigProvider>
       </div>
     </>
-
   )
 }
 

@@ -1,6 +1,0 @@
-html, body {
-  margin: 0;
-  width: 100%;
-  height: 100vh; /* 确保页面高度始终等于窗口 */
-  overflow: hidden; /* 禁止滚动条 */
-}
